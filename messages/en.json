@@ -184,6 +184,28 @@
   "connection": {
     "offline": "No internet connection — please reconnect before submitting."
   },
+  "mfa": {
+    "verifyTitle": "Two-Factor Authentication",
+    "verifySubtitle": "Enter the 6-digit code from your authenticator app.",
+    "codeLabel": "Verification Code",
+    "codePlaceholder": "000000",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "invalidCode": "Invalid code. Please try again.",
+    "signOut": "Sign out",
+    "enrollTitle": "Set Up Two-Factor Authentication",
+    "enrollSubtitle": "Scan this QR code with your authenticator app (e.g. Google Authenticator, Authy).",
+    "secretLabel": "Or enter this code manually:",
+    "enrollVerify": "Verify Setup",
+    "enrollSuccess": "MFA enabled successfully.",
+    "enrollRequired": "Two-factor authentication is required to use this application.",
+    "mfaStatus": "MFA",
+    "enrolled": "Enrolled",
+    "notEnrolled": "Not set up",
+    "resetMfa": "Reset MFA",
+    "resetConfirm": "Reset this clinician's MFA? They will need to set it up again on next login.",
+    "resetSuccess": "MFA reset successfully."
+  },
   "adminDashboard": {
     "title": "Admin Dashboard",
     "tabs": {

@@ -30,7 +30,17 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
+      // Check MFA status — redirect to enrol or verify as needed
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const totpFactors = factorsData?.totp ?? [];
+
+      if (totpFactors.length > 0) {
+        // Has TOTP enrolled — needs to verify
+        router.push('/mfa/verify');
+      } else {
+        // No TOTP — needs to enrol
+        router.push('/mfa/enroll');
+      }
       router.refresh();
     });
   };

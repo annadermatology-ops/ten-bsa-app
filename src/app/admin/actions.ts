@@ -329,3 +329,87 @@ export async function getExportData(params: {
     };
   });
 }
+
+/* ─── Phase 6: MFA Management Actions ─── */
+
+export interface ClinicianMfaStatus {
+  clinicianId: string;
+  hasMfa: boolean;
+}
+
+export async function getClinicianMfaStatuses(
+  clinicianIds: string[]
+): Promise<ClinicianMfaStatus[]> {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return [];
+  }
+
+  const admin = createAdminClient();
+  const results: ClinicianMfaStatus[] = [];
+
+  for (const id of clinicianIds) {
+    try {
+      const { data, error } = await admin.auth.admin.getUserById(id);
+      if (error || !data?.user) {
+        results.push({ clinicianId: id, hasMfa: false });
+        continue;
+      }
+
+      const factors = data.user.factors ?? [];
+      const hasTotpEnrolled = factors.some(
+        (f: { factor_type: string; status: string }) =>
+          f.factor_type === 'totp' && f.status === 'verified'
+      );
+      results.push({ clinicianId: id, hasMfa: hasTotpEnrolled });
+    } catch {
+      results.push({ clinicianId: id, hasMfa: false });
+    }
+  }
+
+  return results;
+}
+
+export async function resetClinicianMfa(clinicianId: string) {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return { error: 'Unauthorized' };
+  }
+
+  const admin = createAdminClient();
+
+  try {
+    // Get the user's MFA factors
+    const { data: userData, error: userError } =
+      await admin.auth.admin.getUserById(clinicianId);
+
+    if (userError || !userData?.user) {
+      return { error: 'User not found' };
+    }
+
+    const factors = userData.user.factors ?? [];
+    const totpFactors = factors.filter(
+      (f: { factor_type: string }) => f.factor_type === 'totp'
+    );
+
+    if (totpFactors.length === 0) {
+      return { error: 'No MFA factors to reset' };
+    }
+
+    // Delete each TOTP factor
+    for (const factor of totpFactors) {
+      const { error: deleteError } = await admin.auth.admin.mfa.deleteFactor({
+        id: factor.id,
+        userId: clinicianId,
+      });
+
+      if (deleteError) {
+        return { error: deleteError.message };
+      }
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: 'Failed to reset MFA' };
+  }
+}

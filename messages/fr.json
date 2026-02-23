@@ -184,6 +184,28 @@
   "connection": {
     "offline": "Pas de connexion internet — veuillez vous reconnecter avant de soumettre."
   },
+  "mfa": {
+    "verifyTitle": "Authentification à deux facteurs",
+    "verifySubtitle": "Entrez le code à 6 chiffres de votre application d'authentification.",
+    "codeLabel": "Code de vérification",
+    "codePlaceholder": "000000",
+    "verify": "Vérifier",
+    "verifying": "Vérification…",
+    "invalidCode": "Code invalide. Veuillez réessayer.",
+    "signOut": "Déconnexion",
+    "enrollTitle": "Configurer l'authentification à deux facteurs",
+    "enrollSubtitle": "Scannez ce QR code avec votre application d'authentification (ex : Google Authenticator, Authy).",
+    "secretLabel": "Ou entrez ce code manuellement :",
+    "enrollVerify": "Vérifier la configuration",
+    "enrollSuccess": "MFA activée avec succès.",
+    "enrollRequired": "L'authentification à deux facteurs est requise pour utiliser cette application.",
+    "mfaStatus": "MFA",
+    "enrolled": "Activée",
+    "notEnrolled": "Non configurée",
+    "resetMfa": "Réinitialiser MFA",
+    "resetConfirm": "Réinitialiser la MFA de ce clinicien ? Il devra la reconfigurer à la prochaine connexion.",
+    "resetSuccess": "MFA réinitialisée avec succès."
+  },
   "adminDashboard": {
     "title": "Tableau de bord admin",
     "tabs": {

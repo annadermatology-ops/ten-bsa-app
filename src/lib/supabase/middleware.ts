@@ -30,20 +30,53 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users to /login (except for /login itself)
-  const isLoginPage = request.nextUrl.pathname === '/login';
+  const pathname = request.nextUrl.pathname;
+  const isLoginPage = pathname === '/login';
+  const isMfaPage = pathname.startsWith('/mfa/');
 
+  // --- Unauthenticated users ---
   if (!user && !isLoginPage) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from /login
-  if (user && isLoginPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
+  // --- Authenticated users ---
+  if (user) {
+    // Check AAL (assurance level)
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const currentLevel = aalData?.currentLevel ?? 'aal1';
+    const nextLevel = aalData?.nextLevel ?? 'aal1';
+
+    // User is fully authenticated (aal2) — redirect away from login/mfa pages
+    if (currentLevel === 'aal2') {
+      if (isLoginPage || isMfaPage) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+      // Allow through to app
+      return supabaseResponse;
+    }
+
+    // User is aal1 — needs MFA
+    if (currentLevel === 'aal1') {
+      if (nextLevel === 'aal2') {
+        // Has TOTP enrolled but hasn't verified yet → send to verify
+        if (pathname !== '/mfa/verify') {
+          const url = request.nextUrl.clone();
+          url.pathname = '/mfa/verify';
+          return NextResponse.redirect(url);
+        }
+      } else {
+        // No TOTP enrolled yet → send to enrol
+        if (pathname !== '/mfa/enroll') {
+          const url = request.nextUrl.clone();
+          url.pathname = '/mfa/enroll';
+          return NextResponse.redirect(url);
+        }
+      }
+    }
   }
 
   return supabaseResponse;

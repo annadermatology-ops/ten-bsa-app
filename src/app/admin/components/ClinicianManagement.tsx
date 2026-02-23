@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   listClinicians,
   createClinician,
   toggleClinicianActive,
+  getClinicianMfaStatuses,
+  resetClinicianMfa,
+  type ClinicianMfaStatus,
 } from '../actions';
 import type { Role, Site, Database } from '@/lib/supabase/types';
 
@@ -24,6 +27,7 @@ export function ClinicianManagement({
 }: ClinicianManagementProps) {
   const t = useTranslations();
   const [clinicians, setClinicians] = useState<Clinician[]>(initialClinicians);
+  const [mfaStatuses, setMfaStatuses] = useState<Record<string, boolean>>({});
   const [showDialog, setShowDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{
@@ -38,10 +42,40 @@ export function ClinicianManagement({
   const [formRole, setFormRole] = useState<Role>('clinician');
   const [formSite, setFormSite] = useState<Site>('england');
 
+  // Load MFA statuses on mount and when clinicians change
+  useEffect(() => {
+    loadMfaStatuses(clinicians);
+  }, []);
+
+  async function loadMfaStatuses(list: Clinician[]) {
+    if (list.length === 0) return;
+    const statuses = await getClinicianMfaStatuses(list.map((c) => c.id));
+    const map: Record<string, boolean> = {};
+    statuses.forEach((s) => {
+      map[s.clinicianId] = s.hasMfa;
+    });
+    setMfaStatuses(map);
+  }
+
   async function reload() {
     const list = await listClinicians();
     setClinicians(list);
+    await loadMfaStatuses(list);
     onRefresh();
+  }
+
+  function handleResetMfa(clinicianId: string) {
+    if (!confirm(t('mfa.resetConfirm'))) return;
+
+    startTransition(async () => {
+      const result = await resetClinicianMfa(clinicianId);
+      if (result.error) {
+        setMessage({ type: 'error', text: result.error });
+      } else {
+        setMessage({ type: 'success', text: t('mfa.resetSuccess') });
+        await reload();
+      }
+    });
   }
 
   function handleCreate(e: React.FormEvent) {
@@ -133,6 +167,9 @@ export function ClinicianManagement({
                 <th className="text-left px-4 py-2.5 font-semibold text-[#555]">
                   {t('admin.status')}
                 </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-[#555]">
+                  {t('mfa.mfaStatus')}
+                </th>
                 <th className="text-right px-4 py-2.5 font-semibold text-[#555]">
                   {t('admin.actions')}
                 </th>
@@ -165,20 +202,46 @@ export function ClinicianManagement({
                       {c.is_active ? t('admin.active') : t('admin.inactive')}
                     </span>
                   </td>
+                  <td className="px-4 py-2.5">
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-xs ${
+                        mfaStatuses[c.id]
+                          ? 'bg-green-50 text-green-700'
+                          : 'bg-amber-50 text-amber-700'
+                      }`}
+                    >
+                      {mfaStatuses[c.id]
+                        ? t('mfa.enrolled')
+                        : t('mfa.notEnrolled')}
+                    </span>
+                  </td>
                   <td className="px-4 py-2.5 text-right">
-                    {c.id !== currentUser.id && (
-                      <button
-                        onClick={() =>
-                          handleToggleActive(c.id, c.is_active)
-                        }
-                        disabled={isPending}
-                        className="text-xs text-[#888] hover:text-[#333] disabled:opacity-50"
-                      >
-                        {c.is_active
-                          ? t('admin.deactivate')
-                          : t('admin.activate')}
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      {c.id !== currentUser.id && (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleToggleActive(c.id, c.is_active)
+                            }
+                            disabled={isPending}
+                            className="text-xs text-[#888] hover:text-[#333] disabled:opacity-50"
+                          >
+                            {c.is_active
+                              ? t('admin.deactivate')
+                              : t('admin.activate')}
+                          </button>
+                          {mfaStatuses[c.id] && (
+                            <button
+                              onClick={() => handleResetMfa(c.id)}
+                              disabled={isPending}
+                              className="text-xs text-amber-600 hover:text-amber-800 disabled:opacity-50"
+                            >
+                              {t('mfa.resetMfa')}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
