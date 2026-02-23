@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -24,6 +25,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "TEN BSA",
+  },
+  icons: {
+    apple: "/icons/icon-192.png",
   },
 };
 
@@ -49,6 +53,7 @@ export default async function RootLayout({
         className={`${dmSans.variable} ${jetBrainsMono.variable} font-sans antialiased bg-[#c8c8c0] text-[#1a1a1a] min-h-screen overflow-x-hidden`}
       >
         <NextIntlClientProvider messages={messages}>
+          <ConnectionStatus />
           {children}
         </NextIntlClientProvider>
       </body>
