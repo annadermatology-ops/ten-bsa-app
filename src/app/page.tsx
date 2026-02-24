@@ -129,6 +129,9 @@ export default function PatientsPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-xs text-[#888] hidden sm:inline">
+            {clinician.full_name}
+          </span>
           {['admin', 'pi'].includes(clinician.role) && (
             <button
               onClick={() => router.push('/admin')}

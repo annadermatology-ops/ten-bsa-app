@@ -147,6 +147,7 @@ export interface Database {
           sort_order: number;
           uploaded_by: string;
           created_at: string;
+          metadata: Record<string, unknown> | null;
         };
         Insert: {
           id?: string;
@@ -158,6 +159,7 @@ export interface Database {
           caption?: string | null;
           sort_order?: number;
           uploaded_by: string;
+          metadata?: Record<string, unknown> | null;
         };
         Update: {
           caption?: string | null;

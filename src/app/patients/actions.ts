@@ -166,7 +166,7 @@ export async function submitAssessment(payload: {
   notes: string;
   notesLanguage: 'en' | 'fr';
   albuminLevel: number | null;
-  photos: { dataUrl: string; fileName: string; fileSize: number; mimeType: string; caption: string }[];
+  photos: { dataUrl: string; fileName: string; fileSize: number; mimeType: string; caption: string; metadata?: Record<string, unknown> | null }[];
   canvasImages: {
     anteriorTbsa: string; // data URL
     anteriorDbsa: string;
@@ -332,6 +332,7 @@ export async function submitAssessment(payload: {
           caption: photo.caption || null,
           sort_order: i,
           uploaded_by: user.id,
+          metadata: photo.metadata || null,
         });
       }
     }

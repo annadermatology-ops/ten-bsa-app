@@ -16,7 +16,7 @@ import {
   getAssessmentPhotos,
   getPhotoUrls,
 } from '../actions';
-import { listClinicians } from '../../admin/actions';
+import { listClinicians, getCurrentClinician } from '../../admin/actions';
 import type { Database } from '@/lib/supabase/types';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
@@ -38,6 +38,7 @@ export default function PatientDetailPage() {
   >({});
   const [photos, setPhotos] = useState<Record<string, AssessmentPhoto[]>>({});
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const [currentClinician, setCurrentClinician] = useState<Clinician | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [lightboxPhoto, setLightboxPhoto] = useState<AssessmentPhoto | null>(null);
@@ -51,11 +52,13 @@ export default function PatientDetailPage() {
       }
       setPatient(p);
 
-      const [assessmentList, clinicianList] = await Promise.all([
+      const [assessmentList, clinicianList, me] = await Promise.all([
         getPatientAssessments(p.id),
         listClinicians(),
+        getCurrentClinician(),
       ]);
       setAssessments(assessmentList);
+      setCurrentClinician(me);
 
       // Index clinicians by id
       const map: Record<string, Clinician> = {};
@@ -139,6 +142,11 @@ export default function PatientDetailPage() {
           <span className="text-xs text-[#888]">({patient.initials})</span>
         </div>
         <div className="flex items-center gap-2">
+          {currentClinician && (
+            <span className="text-xs text-[#888] hidden sm:inline">
+              {currentClinician.full_name}
+            </span>
+          )}
           <button
             onClick={() => setShowPasswordDialog(true)}
             className="px-3 py-1.5 text-xs rounded-lg border border-[#d0d0c8] hover:bg-[#f0f0ea] transition-colors"

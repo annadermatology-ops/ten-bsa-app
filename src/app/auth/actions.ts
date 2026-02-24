@@ -33,11 +33,10 @@ export async function changePassword(
     return { error: 'Current password is incorrect.' };
   }
 
-  // Update password via admin API (bypasses session/MFA requirements)
-  const { error: updateError } = await admin.auth.admin.updateUserById(
-    user.id,
-    { password: newPassword },
-  );
+  // Update password via the user's own session (preserves session cookies)
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
 
   if (updateError) {
     return { error: updateError.message };

@@ -199,7 +199,17 @@
     "photoUploadedBy": "Uploaded by",
     "photoDate": "Date",
     "photoCaption": "Caption",
-    "photoClose": "Close"
+    "photoClose": "Close",
+    "photoCameraInfo": "Camera Information",
+    "photoCamera": "Camera",
+    "photoDateTaken": "Date Taken",
+    "photoDimensions": "Dimensions",
+    "photoFocalLength": "Focal Length",
+    "photoAperture": "Aperture",
+    "photoExposure": "Exposure",
+    "photoISO": "ISO",
+    "photoFlash": "Flash",
+    "photoSoftware": "Software"
   },
   "connection": {
     "offline": "No internet connection — please reconnect before submitting."

@@ -33,6 +33,14 @@ export function PhotoLightbox({ photo, url, uploadedBy, onClose }: PhotoLightbox
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
+  // Extract EXIF metadata if available
+  const raw = photo.metadata as Record<string, unknown> | null;
+  const m = (key: string): string | undefined => {
+    const v = raw?.[key];
+    return v != null ? String(v) : undefined;
+  };
+  const hasMeta = raw != null;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
@@ -63,7 +71,7 @@ export function PhotoLightbox({ photo, url, uploadedBy, onClose }: PhotoLightbox
         </div>
 
         {/* Metadata */}
-        <div className="p-4 border-t border-[#e8e8e0] space-y-2">
+        <div className="p-4 border-t border-[#e8e8e0] space-y-2 overflow-y-auto max-h-[35vh]">
           {photo.caption && (
             <div>
               <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">
@@ -98,6 +106,85 @@ export function PhotoLightbox({ photo, url, uploadedBy, onClose }: PhotoLightbox
               </p>
             </div>
           </div>
+
+          {/* EXIF / Camera metadata */}
+          {hasMeta && (
+            <>
+              <div className="border-t border-[#e8e8e0] pt-2 mt-2">
+                <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">
+                  {t('patientDetail.photoCameraInfo')}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                {(m('cameraMake') || m('cameraModel')) && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoCamera')}</span>
+                    <p className="font-medium text-[#555]">
+                      {[m('cameraMake'), m('cameraModel')].filter(Boolean).join(' ')}
+                    </p>
+                  </div>
+                )}
+                {m('dateTaken') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoDateTaken')}</span>
+                    <p className="font-medium text-[#555]">
+                      {new Date(m('dateTaken')!).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                )}
+                {(m('width') || m('height')) && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoDimensions')}</span>
+                    <p className="font-medium text-[#555]">
+                      {m('width')} × {m('height')}
+                    </p>
+                  </div>
+                )}
+                {m('focalLength') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoFocalLength')}</span>
+                    <p className="font-medium text-[#555]">{m('focalLength')} mm</p>
+                  </div>
+                )}
+                {m('fNumber') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoAperture')}</span>
+                    <p className="font-medium text-[#555]">f/{m('fNumber')}</p>
+                  </div>
+                )}
+                {m('exposureTime') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoExposure')}</span>
+                    <p className="font-medium text-[#555]">{m('exposureTime')} s</p>
+                  </div>
+                )}
+                {m('iso') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoISO')}</span>
+                    <p className="font-medium text-[#555]">ISO {m('iso')}</p>
+                  </div>
+                )}
+                {m('flash') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoFlash')}</span>
+                    <p className="font-medium text-[#555]">{m('flash')}</p>
+                  </div>
+                )}
+                {m('software') && (
+                  <div>
+                    <span className="text-[#999]">{t('patientDetail.photoSoftware')}</span>
+                    <p className="font-medium text-[#555]">{m('software')}</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

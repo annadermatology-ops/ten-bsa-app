@@ -199,7 +199,17 @@
     "photoUploadedBy": "Téléchargé par",
     "photoDate": "Date",
     "photoCaption": "Légende",
-    "photoClose": "Fermer"
+    "photoClose": "Fermer",
+    "photoCameraInfo": "Informations de l'appareil photo",
+    "photoCamera": "Appareil",
+    "photoDateTaken": "Date de prise",
+    "photoDimensions": "Dimensions",
+    "photoFocalLength": "Focale",
+    "photoAperture": "Ouverture",
+    "photoExposure": "Exposition",
+    "photoISO": "ISO",
+    "photoFlash": "Flash",
+    "photoSoftware": "Logiciel"
   },
   "connection": {
     "offline": "Pas de connexion internet — veuillez vous reconnecter avant de soumettre."

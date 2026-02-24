@@ -69,6 +69,9 @@ export default function AdminPage() {
           <span className="text-xs text-[#888]">— {t('adminDashboard.title')}</span>
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-xs text-[#888] hidden sm:inline">
+            {currentUser.full_name}
+          </span>
           <button
             onClick={() => router.push('/')}
             className="px-3 py-1.5 text-xs rounded-lg border border-[#d0d0c8] hover:bg-[#f0f0ea] transition-colors"

@@ -13,6 +13,7 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PhotoEditor } from '@/components/photos/PhotoEditor';
 import { getPatient, getPatientAssessmentCount, submitAssessment } from '../../actions';
+import { extractPhotoMetadata, type PhotoMetadata } from '@/lib/exif';
 import type { Database } from '@/lib/supabase/types';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
@@ -24,6 +25,7 @@ interface PhotoEntry {
   fileSize: number;
   mimeType: string;
   caption: string;
+  metadata: PhotoMetadata | null;
 }
 
 export default function AssessmentPage() {
@@ -136,7 +138,11 @@ export default function AssessmentPage() {
     for (const file of Array.from(files)) {
       if (!file.type.startsWith('image/')) continue;
 
-      const dataUrl = await resizeImage(file);
+      // Extract EXIF from original file before resize (resize strips EXIF)
+      const [dataUrl, metadata] = await Promise.all([
+        resizeImage(file),
+        extractPhotoMetadata(file),
+      ]);
       setPhotos((prev) => [
         ...prev,
         {
@@ -146,6 +152,7 @@ export default function AssessmentPage() {
           fileSize: dataUrl.length,
           mimeType: 'image/jpeg',
           caption: '',
+          metadata,
         },
       ]);
     }
@@ -277,6 +284,7 @@ export default function AssessmentPage() {
           fileSize: p.fileSize,
           mimeType: p.mimeType,
           caption: p.caption,
+          metadata: p.metadata as Record<string, unknown> | null,
         })),
         canvasImages: {
           anteriorTbsa,
