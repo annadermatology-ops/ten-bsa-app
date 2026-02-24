@@ -33,12 +33,15 @@ export default function LoginPage() {
       // Check MFA status — redirect to enrol or verify as needed
       const { data: factorsData } = await supabase.auth.mfa.listFactors();
       const totpFactors = factorsData?.totp ?? [];
+      const verifiedFactors = totpFactors.filter(
+        (f) => f.status === 'verified',
+      );
 
-      if (totpFactors.length > 0) {
-        // Has TOTP enrolled — needs to verify
+      if (verifiedFactors.length > 0) {
+        // Has verified TOTP — needs to verify code
         router.push('/mfa/verify');
       } else {
-        // No TOTP — needs to enrol
+        // No verified TOTP — needs to enrol
         router.push('/mfa/enroll');
       }
       router.refresh();

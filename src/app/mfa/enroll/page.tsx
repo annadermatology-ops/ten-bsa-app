@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
+import { cleanupUnverifiedFactors } from './actions';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -27,7 +28,7 @@ export default function MfaEnrollPage() {
 
   async function initEnrol() {
     try {
-      // Check if user already has TOTP enrolled
+      // Check if user already has TOTP enrolled (listFactors returns only verified factors)
       const { data: factorsData } = await supabase.auth.mfa.listFactors();
       const totpFactors = factorsData?.totp ?? [];
 
@@ -37,10 +38,17 @@ export default function MfaEnrollPage() {
         return;
       }
 
-      // Enrol a new TOTP factor
-      const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
-        factorType: 'totp',
-      });
+      // Clean up any stale unverified factors from previous incomplete enrolments.
+      // We do this via a server action to use the admin API, since the client
+      // listFactors() only returns verified factors.
+      await cleanupUnverifiedFactors();
+
+      // Enrol a new TOTP factor with a unique friendly name to avoid collisions
+      const { data: enrollData, error: enrollError } =
+        await supabase.auth.mfa.enroll({
+          factorType: 'totp',
+          friendlyName: `totp-${Date.now()}`,
+        });
 
       if (enrollError) {
         console.error('MFA enrol error:', enrollError);
