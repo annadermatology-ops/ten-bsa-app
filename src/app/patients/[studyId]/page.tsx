@@ -378,7 +378,7 @@ export default function PatientDetailPage() {
                         <div className="border-t border-[#e0e0d8] pt-1.5">
                           <span className="font-semibold text-[#999] text-[10px] uppercase tracking-wide">
                             {t('patientDetail.notesTranslation')}
-                            {a.notes_language ? ` (${a.notes_language === 'en' ? 'FR' : 'EN'})` : ''}
+                            {a.notes_language ? ` (${a.notes_language === 'en' ? 'FR' : 'EN'})` : /* translation is always to EN unless source is EN */''}
                           </span>
                           <p className="text-[#666] mt-0.5 italic">{a.notes_translation}</p>
                         </div>

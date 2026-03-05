@@ -13,7 +13,10 @@ import {
   getLatestAssessments,
 } from './patients/actions';
 import { getCurrentClinician } from './admin/actions';
-import type { Site, Database } from '@/lib/supabase/types';
+import { getStudySites } from '@/lib/sites';
+import { SiteSelect } from '@/components/ui/SiteSelect';
+import { SiteLabel } from '@/components/ui/SiteLabel';
+import type { Site, Database, StudySite } from '@/lib/supabase/types';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
 type Assessment = Database['public']['Tables']['assessments']['Row'];
@@ -27,6 +30,7 @@ export default function PatientsPage() {
     Record<string, Assessment>
   >({});
   const [clinician, setClinician] = useState<Clinician | null>(null);
+  const [sites, setSites] = useState<StudySite[]>([]);
   const [search, setSearch] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -39,7 +43,7 @@ export default function PatientsPage() {
   const [formStudyId, setFormStudyId] = useState('');
   const [formInitials, setFormInitials] = useState('');
   const [formDob, setFormDob] = useState('');
-  const [formSite, setFormSite] = useState<Site>('france');
+  const [formSite, setFormSite] = useState<Site>('');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   useEffect(() => {
@@ -47,14 +51,20 @@ export default function PatientsPage() {
   }, []);
 
   async function loadData() {
-    const [user, patientList, latest] = await Promise.all([
+    const [user, patientList, latest, siteList] = await Promise.all([
       getCurrentClinician(),
       listPatients(),
       getLatestAssessments(),
+      getStudySites(),
     ]);
     setClinician(user);
     setPatients(patientList);
     setLatestAssessments(latest);
+    setSites(siteList);
+    // Default form site to clinician's site or first available
+    if (user) {
+      setFormSite(user.site || (siteList.length > 0 ? siteList[0].key : ''));
+    }
   }
 
   async function handleSignOut() {
@@ -87,7 +97,7 @@ export default function PatientsPage() {
         setFormStudyId('');
         setFormInitials('');
         setFormDob('');
-        setFormSite('france');
+        setFormSite(clinician?.site || (sites.length > 0 ? sites[0].key : ''));
         await loadData();
       }
     });
@@ -246,7 +256,7 @@ export default function PatientsPage() {
                         {formatDate(p.date_of_birth)}
                       </td>
                       <td className="px-4 py-2.5 hidden sm:table-cell">
-                        {t(`admin.sites.${p.site}`)}
+                        <SiteLabel sites={sites} siteKey={p.site} />
                       </td>
                       <td className="px-4 py-2.5">
                         {latest ? (
@@ -377,19 +387,11 @@ export default function PatientsPage() {
                 <label className="block text-xs font-semibold text-[#555] mb-1">
                   {t('patients.dialog.site')}
                 </label>
-                <select
+                <SiteSelect
+                  sites={sites}
                   value={formSite}
-                  onChange={(e) => setFormSite(e.target.value as Site)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#d0d0c8] text-sm
-                             focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
-                >
-                  <option value="france">
-                    {t('admin.sites.france')}
-                  </option>
-                  <option value="england">
-                    {t('admin.sites.england')}
-                  </option>
-                </select>
+                  onChange={(v) => setFormSite(v)}
+                />
               </div>
 
               {message?.type === 'error' && (

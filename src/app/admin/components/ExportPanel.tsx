@@ -5,8 +5,14 @@ import { useTranslations } from 'next-intl';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getExportData, type ExportRow } from '../actions';
 import { generateCSV, downloadCSV } from '@/lib/csv';
+import { SiteSelect } from '@/components/ui/SiteSelect';
+import type { StudySite } from '@/lib/supabase/types';
 
-export function ExportPanel() {
+interface ExportPanelProps {
+  sites: StudySite[];
+}
+
+export function ExportPanel({ sites }: ExportPanelProps) {
   const t = useTranslations();
   const [siteFilter, setSiteFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -30,7 +36,8 @@ export function ExportPanel() {
       const headers = [
         'Study ID',
         'Initials',
-        'Site',
+        'Patient Site',
+        'Assessment Site',
         'Assessment Date',
         'TBSA %',
         'DBSA %',
@@ -57,7 +64,8 @@ export function ExportPanel() {
         const base = [
           row.study_id,
           row.initials,
-          row.site,
+          row.patient_site,
+          row.assessment_site,
           row.assessment_date,
           row.tbsa_percent.toFixed(1),
           row.dbsa_percent.toFixed(1),
@@ -109,15 +117,14 @@ export function ExportPanel() {
             <label className="block text-[10px] font-semibold text-[#999] uppercase tracking-wide mb-1">
               {t('adminDashboard.export.siteFilter')}
             </label>
-            <select
+            <SiteSelect
+              sites={sites}
               value={siteFilter}
-              onChange={(e) => setSiteFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-lg border border-[#d0d0c8] focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30"
-            >
-              <option value="">{t('adminDashboard.export.allSites')}</option>
-              <option value="france">{t('admin.sites.france')}</option>
-              <option value="england">{t('admin.sites.england')}</option>
-            </select>
+              onChange={setSiteFilter}
+              includeAll
+              allLabel={t('adminDashboard.export.allSites')}
+              className="py-1.5 text-xs"
+            />
           </div>
 
           {/* Date from */}

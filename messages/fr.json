@@ -85,7 +85,7 @@
   },
   "admin": {
     "title": "Gestion des cliniciens",
-    "addClinician": "Ajouter un clinicien",
+    "inviteClinician": "Inviter",
     "name": "Nom complet",
     "email": "E-mail",
     "role": "Rôle",
@@ -112,17 +112,21 @@
     "resetPasswordHelp": "Minimum 8 caractères. Le clinicien utilisera ce mot de passe pour se connecter.",
     "resetPasswordConfirm": "Réinitialiser",
     "resetPasswordSuccess": "Le mot de passe a été réinitialisé avec succès.",
+    "changeRole": "Changer le rôle",
+    "changeRoleTitle": "Changer le rôle",
+    "changeRoleSave": "Enregistrer",
+    "changeRoleSuccess": "Rôle mis à jour avec succès.",
+    "resendInvite": "Renvoyer l'invitation",
+    "resendInviteSuccess": "E-mail d'invitation renvoyé avec succès.",
     "dialog": {
-      "title": "Ajouter un nouveau clinicien",
+      "inviteTitle": "Inviter un clinicien",
       "namePlaceholder": "Dr. Marie Dupont",
       "emailPlaceholder": "m.dupont@hopital.fr",
-      "tempPassword": "Mot de passe temporaire",
-      "tempPasswordHelp": "Le clinicien utilisera ce mot de passe pour sa première connexion.",
       "cancel": "Annuler",
-      "create": "Créer le compte",
-      "creating": "Création…",
-      "success": "Compte clinicien créé avec succès.",
-      "error": "Échec de la création du compte. Veuillez réessayer."
+      "sendInvite": "Envoyer l'invitation",
+      "sending": "Envoi en cours…",
+      "inviteSent": "E-mail d'invitation envoyé à {email}.",
+      "error": "Échec de l'envoi. Veuillez réessayer."
     }
   },
   "patients": {
@@ -159,6 +163,10 @@
   "assessment": {
     "title": "Évaluation",
     "forPatient": "pour",
+    "site": "Site d'évaluation",
+    "geoHint": "Votre position suggère ",
+    "geoSwitch": "Changer",
+    "confirmSite": "Site",
     "notes": "Notes",
     "notesPlaceholder": "Notes cliniques facultatives…",
     "albumin": "Albumine",
@@ -302,8 +310,37 @@
     "tabs": {
       "overview": "Vue d'ensemble",
       "clinicians": "Cliniciens",
+      "sites": "Sites",
       "export": "Exporter",
       "auditLog": "Journal d'audit"
+    },
+    "sites": {
+      "title": "Sites d'étude",
+      "addSite": "Ajouter un site",
+      "noSites": "Aucun site d'étude configuré.",
+      "key": "Clé",
+      "displayName": "Nom d'affichage",
+      "displayNames": "Noms d'affichage",
+      "defaultLang": "Langue par défaut",
+      "order": "Ordre",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "status": "Statut",
+      "actions": "Actions",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "edit": "Modifier",
+      "deactivate": "Désactiver",
+      "activate": "Activer",
+      "addTitle": "Ajouter un site d'étude",
+      "editTitle": "Modifier le site d'étude",
+      "keyHelp": "Lettres minuscules, chiffres et tirets uniquement (ex. allemagne, usa-est).",
+      "cancel": "Annuler",
+      "create": "Créer le site",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "createSuccess": "Site d'étude créé avec succès.",
+      "updateSuccess": "Site d'étude mis à jour avec succès."
     },
     "overview": {
       "title": "Vue d'ensemble des patients",
@@ -433,13 +470,19 @@
         "alreadyRan": "Si vous avez déjà exécuté la migration 001 avec les sites par défaut, exécutez plutôt cet ALTER TYPE :"
       },
       "adminUser": {
-        "title": "Créer votre premier administrateur",
-        "description": "Vous devez créer manuellement le premier compte admin. Ensuite, vous pourrez ajouter des cliniciens depuis l'application.",
-        "step1": "Dans votre tableau de bord Supabase, allez dans Authentication > Users > Add User.",
-        "step2": "Créez un utilisateur avec un e-mail et un mot de passe.",
-        "step3": "Copiez l'UUID de l'utilisateur depuis le tableau (cliquez sur la ligne pour le voir).",
-        "step4": "Dans l'éditeur SQL, exécutez ceci pour créer l'enregistrement clinicien correspondant :",
-        "sqlNote": "Remplacez les valeurs entre guillemets par vos propres valeurs. L'id doit correspondre à l'UUID de l'étape 3. La valeur site doit correspondre à l'une de vos clés de site."
+        "title": "Créer le premier compte administrateur",
+        "description": "Créez le compte initial d'investigateur principal (IP). Ce compte pourra ensuite inviter tous les autres cliniciens depuis l'application.",
+        "fullName": "Nom complet",
+        "namePlaceholder": "Dr. Marie Dupont",
+        "email": "E-mail",
+        "password": "Mot de passe",
+        "passwordHelp": "Minimum 8 caractères. Vous l'utiliserez pour votre première connexion.",
+        "site": "Site par défaut",
+        "siteHelp": "Doit correspondre à une clé de site (ex. france, england).",
+        "createButton": "Créer le compte IP",
+        "creating": "Création en cours…",
+        "success": "Compte IP créé ! Vous pouvez maintenant vous connecter.",
+        "note": "Cette opération ne peut être effectuée qu'une seule fois. Utilisez ensuite le système d'invitation depuis l'application."
       },
       "envConfig": {
         "title": "Configurer les variables d'environnement",

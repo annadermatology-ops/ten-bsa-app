@@ -2,14 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 
-export type AdminTab = 'overview' | 'clinicians' | 'export' | 'auditLog';
+export type AdminTab = 'overview' | 'clinicians' | 'sites' | 'export' | 'auditLog';
 
 interface AdminTabsProps {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
 }
 
-const tabs: AdminTab[] = ['overview', 'clinicians', 'export', 'auditLog'];
+const tabs: AdminTab[] = ['overview', 'clinicians', 'sites', 'export', 'auditLog'];
 
 export function AdminTabs({ activeTab, onTabChange }: AdminTabsProps) {
   const t = useTranslations('adminDashboard.tabs');

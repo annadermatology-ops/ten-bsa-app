@@ -161,6 +161,7 @@ export async function getPreviousAssessmentMaps(
   patientId: string,
 ): Promise<{
   date: string;
+  site: string | null;
   anteriorTbsa: string | null;
   anteriorDbsa: string | null;
   posteriorTbsa: string | null;
@@ -171,7 +172,7 @@ export async function getPreviousAssessmentMaps(
   // Get the most recent assessment for this patient
   const { data, error } = await supabase
     .from('assessments')
-    .select('assessment_date, canvas_anterior_tbsa, canvas_anterior_dbsa, canvas_posterior_tbsa, canvas_posterior_dbsa')
+    .select('assessment_date, site, canvas_anterior_tbsa, canvas_anterior_dbsa, canvas_posterior_tbsa, canvas_posterior_dbsa')
     .eq('patient_id', patientId)
     .eq('is_deleted', false)
     .order('assessment_date', { ascending: false })
@@ -182,6 +183,7 @@ export async function getPreviousAssessmentMaps(
 
   const a = data as {
     assessment_date: string;
+    site: string | null;
     canvas_anterior_tbsa: string | null;
     canvas_anterior_dbsa: string | null;
     canvas_posterior_tbsa: string | null;
@@ -227,6 +229,7 @@ export async function getPreviousAssessmentMaps(
 
   return {
     date: a.assessment_date,
+    site: a.site,
     anteriorTbsa: result.anteriorTbsa,
     anteriorDbsa: result.anteriorDbsa,
     posteriorTbsa: result.posteriorTbsa,
@@ -236,12 +239,13 @@ export async function getPreviousAssessmentMaps(
 
 export async function submitAssessment(payload: {
   patientId: string;
+  site: string;
   tbsaPercent: number;
   dbsaPercent: number;
   tbsaRegions: Record<string, number>;
   dbsaRegions: Record<string, number>;
   notes: string;
-  notesLanguage: 'en' | 'fr';
+  notesLanguage: string;
   albuminLevel: number | null;
   photos: { dataUrl: string; fileName: string; fileSize: number; mimeType: string; caption: string; metadata?: Record<string, unknown> | null }[];
   canvasImages: {
@@ -341,11 +345,12 @@ export async function submitAssessment(payload: {
   // Translate notes if present (non-blocking — translation failure doesn't block submission)
   let notesTranslation: string | null = null;
   if (payload.notes?.trim()) {
+    // Translate to English as common language; if source is English, translate to French
     const targetLang = payload.notesLanguage === 'en' ? 'fr' : 'en';
     notesTranslation = await translateText(
       payload.notes,
       payload.notesLanguage,
-      targetLang as 'en' | 'fr',
+      targetLang,
     );
   }
 
@@ -354,6 +359,7 @@ export async function submitAssessment(payload: {
   const { data: assessmentData, error } = await (supabase as any).from('assessments').insert({
     patient_id: payload.patientId,
     clinician_id: user.id,
+    site: payload.site,
     tbsa_percent: payload.tbsaPercent,
     dbsa_percent: payload.dbsaPercent,
     tbsa_regions: payload.tbsaRegions,

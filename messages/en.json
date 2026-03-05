@@ -85,7 +85,7 @@
   },
   "admin": {
     "title": "Clinician Management",
-    "addClinician": "Add Clinician",
+    "inviteClinician": "Invite",
     "name": "Full Name",
     "email": "Email",
     "role": "Role",
@@ -96,6 +96,12 @@
     "actions": "Actions",
     "deactivate": "Deactivate",
     "activate": "Activate",
+    "changeRole": "Change Role",
+    "changeRoleTitle": "Change Role",
+    "changeRoleSave": "Save",
+    "changeRoleSuccess": "Role updated successfully.",
+    "resendInvite": "Resend Invite",
+    "resendInviteSuccess": "Invite email resent successfully.",
     "noClinicians": "No clinicians registered yet.",
     "roles": {
       "clinician": "Clinician",
@@ -113,16 +119,14 @@
     "resetPasswordConfirm": "Reset Password",
     "resetPasswordSuccess": "Password has been reset successfully.",
     "dialog": {
-      "title": "Add New Clinician",
+      "inviteTitle": "Invite Clinician",
       "namePlaceholder": "Dr. Jane Smith",
       "emailPlaceholder": "j.smith@hospital.nhs.uk",
-      "tempPassword": "Temporary Password",
-      "tempPasswordHelp": "The clinician will use this to log in for the first time.",
       "cancel": "Cancel",
-      "create": "Create Account",
-      "creating": "Creating…",
-      "success": "Clinician account created successfully.",
-      "error": "Failed to create account. Please try again."
+      "sendInvite": "Send Invite",
+      "sending": "Sending…",
+      "inviteSent": "Invite email sent to {email}.",
+      "error": "Failed to send invite. Please try again."
     }
   },
   "patients": {
@@ -159,6 +163,10 @@
   "assessment": {
     "title": "Assessment",
     "forPatient": "for",
+    "site": "Assessment site",
+    "geoHint": "Your location suggests ",
+    "geoSwitch": "Switch",
+    "confirmSite": "Site",
     "notes": "Notes",
     "notesPlaceholder": "Optional clinical notes…",
     "albumin": "Albumin",
@@ -302,8 +310,37 @@
     "tabs": {
       "overview": "Overview",
       "clinicians": "Clinicians",
+      "sites": "Sites",
       "export": "Export",
       "auditLog": "Audit Log"
+    },
+    "sites": {
+      "title": "Study Sites",
+      "addSite": "Add Site",
+      "noSites": "No study sites configured.",
+      "key": "Key",
+      "displayName": "Display Name",
+      "displayNames": "Display Names",
+      "defaultLang": "Default Language",
+      "order": "Order",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "addTitle": "Add Study Site",
+      "editTitle": "Edit Study Site",
+      "keyHelp": "Lowercase letters, numbers, and hyphens only (e.g. germany, usa-east).",
+      "cancel": "Cancel",
+      "create": "Create Site",
+      "save": "Save Changes",
+      "saving": "Saving…",
+      "createSuccess": "Study site created successfully.",
+      "updateSuccess": "Study site updated successfully."
     },
     "overview": {
       "title": "Patient Overview",
@@ -434,12 +471,18 @@
       },
       "adminUser": {
         "title": "Create Your First Admin User",
-        "description": "You need to manually create the first admin account. After that, you can add clinicians from within the app.",
-        "step1": "In your Supabase dashboard, go to Authentication > Users > Add User.",
-        "step2": "Create a user with an email and password.",
-        "step3": "Copy the user's UUID from the table (click on the user row to see it).",
-        "step4": "In the SQL Editor, run this to create the matching clinician record:",
-        "sqlNote": "Replace the placeholders with your actual values. The id must match the UUID from step 3. The site value must match one of your study site keys."
+        "description": "Create the initial PI (Principal Investigator) account. This is the bootstrap account that can then invite all other clinicians from within the app.",
+        "fullName": "Full Name",
+        "namePlaceholder": "Dr. Jane Smith",
+        "email": "Email",
+        "password": "Password",
+        "passwordHelp": "Minimum 8 characters. You'll use this to log in for the first time.",
+        "site": "Default Site",
+        "siteHelp": "Must match a study site key (e.g. france, england).",
+        "createButton": "Create PI Account",
+        "creating": "Creating…",
+        "success": "PI account created! You can now log in at the login page.",
+        "note": "This can only be used once. After the first admin is created, use the invite system from within the app to add more users."
       },
       "envConfig": {
         "title": "Configure Environment Variables",

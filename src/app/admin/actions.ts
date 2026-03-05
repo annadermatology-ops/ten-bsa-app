@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { Role, Site, Database } from '@/lib/supabase/types';
+import type { Role, Site, Database, StudySite } from '@/lib/supabase/types';
 
 type Clinician = Database['public']['Tables']['clinicians']['Row'];
 
@@ -34,10 +34,9 @@ export async function listClinicians(): Promise<Clinician[]> {
   return (data ?? []) as Clinician[];
 }
 
-export async function createClinician(formData: {
+export async function inviteClinician(formData: {
   email: string;
   fullName: string;
-  password: string;
   role: Role;
   site: Site;
 }) {
@@ -49,19 +48,19 @@ export async function createClinician(formData: {
 
   const admin = createAdminClient();
 
-  // Create auth user (bypasses signup disabled)
+  // Invite via Supabase — sends email with magic link
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ten-bsa-app.vercel.app';
   const { data: authData, error: authError } =
-    await admin.auth.admin.createUser({
-      email: formData.email,
-      password: formData.password,
-      email_confirm: true,
+    await admin.auth.admin.inviteUserByEmail(formData.email, {
+      redirectTo: `${siteUrl}/auth/callback`,
+      data: { full_name: formData.fullName },
     });
 
   if (authError) {
     return { error: authError.message };
   }
 
-  // Create clinician record
+  // Create clinician record immediately
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: clinicianError } = await (admin as any).from('clinicians').insert({
     id: authData.user.id,
@@ -78,6 +77,62 @@ export async function createClinician(formData: {
     return { error: clinicianError.message };
   }
 
+  return { success: true };
+}
+
+export async function updateClinicianRole(clinicianId: string, newRole: Role) {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return { error: 'Unauthorized' };
+  }
+
+  // Prevent changing own role
+  if (clinicianId === currentUser.id) {
+    return { error: 'Cannot change your own role' };
+  }
+
+  const admin = createAdminClient();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin as any)
+    .from('clinicians')
+    .update({ role: newRole })
+    .eq('id', clinicianId);
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function resendInvite(clinicianId: string) {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return { error: 'Unauthorized' };
+  }
+
+  const admin = createAdminClient();
+
+  // Get the clinician's email
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: clinicianData, error: fetchError } = await (admin as any)
+    .from('clinicians')
+    .select('email, full_name')
+    .eq('id', clinicianId)
+    .single();
+
+  if (fetchError || !clinicianData) {
+    return { error: 'Clinician not found' };
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ten-bsa-app.vercel.app';
+  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+    clinicianData.email,
+    {
+      redirectTo: `${siteUrl}/auth/callback`,
+      data: { full_name: clinicianData.full_name },
+    }
+  );
+
+  if (inviteError) return { error: inviteError.message };
   return { success: true };
 }
 
@@ -239,7 +294,8 @@ export async function getAuditLog(params: {
 export interface ExportRow {
   study_id: string;
   initials: string;
-  site: string;
+  patient_site: string;
+  assessment_site: string;
   assessment_date: string;
   tbsa_percent: number;
   dbsa_percent: number;
@@ -315,7 +371,8 @@ export async function getExportData(params: {
     return {
       study_id: patient?.study_id ?? '',
       initials: patient?.initials ?? '',
-      site: patient?.site ?? '',
+      patient_site: patient?.site ?? '',
+      assessment_site: (a.site as string) ?? patient?.site ?? '',
       assessment_date: a.assessment_date,
       tbsa_percent: Number(a.tbsa_percent),
       dbsa_percent: Number(a.dbsa_percent),
@@ -385,6 +442,91 @@ export async function resetClinicianPassword(clinicianId: string, newPassword: s
   const { error } = await admin.auth.admin.updateUserById(clinicianId, {
     password: newPassword,
   });
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+/* ─── Dynamic Sites Management ─── */
+
+export async function listStudySites(): Promise<StudySite[]> {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('study_sites')
+    .select('*')
+    .order('sort_order')
+    .order('key');
+
+  if (error) return [];
+  return (data ?? []) as StudySite[];
+}
+
+export async function createStudySite(formData: {
+  key: string;
+  displayNames: Record<string, string>;
+  defaultLanguage: string;
+  sortOrder: number;
+  latitude?: number | null;
+  longitude?: number | null;
+}) {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return { error: 'Unauthorized' };
+  }
+
+  const admin = createAdminClient();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin as any).from('study_sites').insert({
+    key: formData.key,
+    display_names: formData.displayNames,
+    default_language: formData.defaultLanguage,
+    sort_order: formData.sortOrder,
+    latitude: formData.latitude ?? null,
+    longitude: formData.longitude ?? null,
+    is_active: true,
+  });
+
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function updateStudySite(
+  key: string,
+  formData: {
+    displayNames?: Record<string, string>;
+    defaultLanguage?: string;
+    isActive?: boolean;
+    sortOrder?: number;
+    latitude?: number | null;
+    longitude?: number | null;
+  }
+) {
+  const currentUser = await getCurrentClinician();
+  if (!currentUser || !['admin', 'pi'].includes(currentUser.role)) {
+    return { error: 'Unauthorized' };
+  }
+
+  const admin = createAdminClient();
+
+  const updateData: Record<string, unknown> = {};
+  if (formData.displayNames !== undefined) updateData.display_names = formData.displayNames;
+  if (formData.defaultLanguage !== undefined) updateData.default_language = formData.defaultLanguage;
+  if (formData.isActive !== undefined) updateData.is_active = formData.isActive;
+  if (formData.sortOrder !== undefined) updateData.sort_order = formData.sortOrder;
+  if (formData.latitude !== undefined) updateData.latitude = formData.latitude;
+  if (formData.longitude !== undefined) updateData.longitude = formData.longitude;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin as any)
+    .from('study_sites')
+    .update(updateData)
+    .eq('key', key);
 
   if (error) return { error: error.message };
   return { success: true };

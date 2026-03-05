@@ -5,8 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getPatientOverview, type PatientOverviewRow } from '../actions';
+import { SiteLabel } from '@/components/ui/SiteLabel';
+import type { StudySite } from '@/lib/supabase/types';
 
-export function PatientOverview() {
+interface PatientOverviewProps {
+  sites: StudySite[];
+}
+
+export function PatientOverview({ sites }: PatientOverviewProps) {
   const t = useTranslations();
   const router = useRouter();
   const [rows, setRows] = useState<PatientOverviewRow[]>([]);
@@ -87,7 +93,7 @@ export function PatientOverview() {
               >
                 <td className="px-3 py-2 font-medium">{row.study_id}</td>
                 <td className="px-3 py-2 text-[#666]">{row.initials}</td>
-                <td className="px-3 py-2">{t(`admin.sites.${row.site}`)}</td>
+                <td className="px-3 py-2"><SiteLabel sites={sites} siteKey={row.site} /></td>
                 <td className="px-3 py-2 text-center">{row.assessment_count}</td>
                 <td className="px-3 py-2 text-right">
                   {row.latest_tbsa !== null ? (

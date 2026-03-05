@@ -4,26 +4,32 @@ import { useEffect, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   listClinicians,
-  createClinician,
+  inviteClinician,
   toggleClinicianActive,
+  updateClinicianRole,
+  resendInvite,
   getClinicianMfaStatuses,
   resetClinicianMfa,
   resetClinicianPassword,
   type ClinicianMfaStatus,
 } from '../actions';
-import type { Role, Site, Database } from '@/lib/supabase/types';
+import { SiteSelect } from '@/components/ui/SiteSelect';
+import { SiteLabel } from '@/components/ui/SiteLabel';
+import type { Role, Site, Database, StudySite } from '@/lib/supabase/types';
 
 type Clinician = Database['public']['Tables']['clinicians']['Row'];
 
 interface ClinicianManagementProps {
   currentUser: Clinician;
   initialClinicians: Clinician[];
+  sites: StudySite[];
   onRefresh: () => void;
 }
 
 export function ClinicianManagement({
   currentUser,
   initialClinicians,
+  sites,
   onRefresh,
 }: ClinicianManagementProps) {
   const t = useTranslations();
@@ -36,16 +42,19 @@ export function ClinicianManagement({
     text: string;
   } | null>(null);
 
-  // Form state
+  // Invite form state
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
-  const [formPassword, setFormPassword] = useState('');
   const [formRole, setFormRole] = useState<Role>('clinician');
-  const [formSite, setFormSite] = useState<Site>('england');
+  const [formSite, setFormSite] = useState<Site>(sites.length > 0 ? sites[0].key : '');
 
   // Reset password dialog state
   const [resetPwClinicianId, setResetPwClinicianId] = useState<string | null>(null);
   const [resetPwValue, setResetPwValue] = useState('');
+
+  // Change role dialog state
+  const [roleEditClinicianId, setRoleEditClinicianId] = useState<string | null>(null);
+  const [roleEditValue, setRoleEditValue] = useState<Role>('clinician');
 
   // Load MFA statuses on mount and when clinicians change
   useEffect(() => {
@@ -98,15 +107,14 @@ export function ClinicianManagement({
     });
   }
 
-  function handleCreate(e: React.FormEvent) {
+  function handleInvite(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
 
     startTransition(async () => {
-      const result = await createClinician({
+      const result = await inviteClinician({
         email: formEmail,
         fullName: formName,
-        password: formPassword,
         role: formRole,
         site: formSite,
       });
@@ -114,13 +122,12 @@ export function ClinicianManagement({
       if (result.error) {
         setMessage({ type: 'error', text: result.error });
       } else {
-        setMessage({ type: 'success', text: t('admin.dialog.success') });
+        setMessage({ type: 'success', text: t('admin.dialog.inviteSent', { email: formEmail }) });
         setShowDialog(false);
         setFormName('');
         setFormEmail('');
-        setFormPassword('');
         setFormRole('clinician');
-        setFormSite('england');
+        setFormSite(sites.length > 0 ? sites[0].key : '');
         await reload();
       }
     });
@@ -130,6 +137,37 @@ export function ClinicianManagement({
     startTransition(async () => {
       await toggleClinicianActive(id, !currentlyActive);
       await reload();
+    });
+  }
+
+  function openRoleEdit(clinician: Clinician) {
+    setRoleEditClinicianId(clinician.id);
+    setRoleEditValue(clinician.role as Role);
+  }
+
+  function handleRoleChange() {
+    if (!roleEditClinicianId) return;
+
+    startTransition(async () => {
+      const result = await updateClinicianRole(roleEditClinicianId, roleEditValue);
+      if (result.error) {
+        setMessage({ type: 'error', text: result.error });
+      } else {
+        setMessage({ type: 'success', text: t('admin.changeRoleSuccess') });
+        await reload();
+      }
+      setRoleEditClinicianId(null);
+    });
+  }
+
+  function handleResendInvite(clinicianId: string) {
+    startTransition(async () => {
+      const result = await resendInvite(clinicianId);
+      if (result.error) {
+        setMessage({ type: 'error', text: result.error });
+      } else {
+        setMessage({ type: 'success', text: t('admin.resendInviteSuccess') });
+      }
     });
   }
 
@@ -148,7 +186,7 @@ export function ClinicianManagement({
         </div>
       )}
 
-      {/* Add clinician button */}
+      {/* Invite clinician button */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-sm font-semibold text-[#555]">
           {t('admin.title')}
@@ -158,7 +196,7 @@ export function ClinicianManagement({
           className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-[#c95a8a] text-white
                      hover:bg-[#b44d7a] active:bg-[#a0426c] transition-colors"
         >
-          + {t('admin.addClinician')}
+          + {t('admin.inviteClinician')}
         </button>
       </div>
 
@@ -209,7 +247,7 @@ export function ClinicianManagement({
                     </span>
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap text-xs">
-                    {t(`admin.sites.${c.site}`)}
+                    <SiteLabel sites={sites} siteKey={c.site} />
                   </td>
                   <td className="px-3 py-2.5">
                     <span
@@ -240,6 +278,13 @@ export function ClinicianManagement({
                       {c.id !== currentUser.id && (
                         <>
                           <button
+                            onClick={() => openRoleEdit(c)}
+                            disabled={isPending}
+                            className="text-xs text-violet-600 hover:text-violet-800 disabled:opacity-50"
+                          >
+                            {t('admin.changeRole')}
+                          </button>
+                          <button
                             onClick={() =>
                               handleToggleActive(c.id, c.is_active)
                             }
@@ -269,6 +314,15 @@ export function ClinicianManagement({
                               {t('mfa.resetMfa')}
                             </button>
                           )}
+                          {!mfaStatuses[c.id] && (
+                            <button
+                              onClick={() => handleResendInvite(c.id)}
+                              disabled={isPending}
+                              className="text-xs text-teal-600 hover:text-teal-800 disabled:opacity-50"
+                            >
+                              {t('admin.resendInvite')}
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -280,15 +334,15 @@ export function ClinicianManagement({
         </div>
       )}
 
-      {/* Add Clinician Dialog */}
+      {/* Invite Clinician Dialog */}
       {showDialog && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-xl border border-[#d0d0c8] shadow-lg w-full max-w-md p-6">
             <h3 className="text-base font-semibold mb-4">
-              {t('admin.dialog.title')}
+              {t('admin.dialog.inviteTitle')}
             </h3>
 
-            <form onSubmit={handleCreate} className="space-y-3">
+            <form onSubmit={handleInvite} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-[#555] mb-1">
                   {t('admin.name')}
@@ -319,24 +373,6 @@ export function ClinicianManagement({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#555] mb-1">
-                  {t('admin.dialog.tempPassword')}
-                </label>
-                <input
-                  type="text"
-                  required
-                  minLength={8}
-                  value={formPassword}
-                  onChange={(e) => setFormPassword(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#d0d0c8] text-sm
-                             focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
-                />
-                <p className="text-[10px] text-[#999] mt-1">
-                  {t('admin.dialog.tempPasswordHelp')}
-                </p>
-              </div>
-
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-[#555] mb-1">
@@ -358,15 +394,11 @@ export function ClinicianManagement({
                   <label className="block text-xs font-semibold text-[#555] mb-1">
                     {t('admin.site')}
                   </label>
-                  <select
+                  <SiteSelect
+                    sites={sites}
                     value={formSite}
-                    onChange={(e) => setFormSite(e.target.value as Site)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#d0d0c8] text-sm
-                               focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
-                  >
-                    <option value="england">{t('admin.sites.england')}</option>
-                    <option value="france">{t('admin.sites.france')}</option>
-                  </select>
+                    onChange={(v) => setFormSite(v)}
+                  />
                 </div>
               </div>
 
@@ -394,14 +426,15 @@ export function ClinicianManagement({
                              hover:bg-[#b44d7a] disabled:opacity-50 transition-colors"
                 >
                   {isPending
-                    ? t('admin.dialog.creating')
-                    : t('admin.dialog.create')}
+                    ? t('admin.dialog.sending')
+                    : t('admin.dialog.sendInvite')}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
       {/* Reset Password Dialog */}
       {resetPwClinicianId && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
@@ -448,6 +481,54 @@ export function ClinicianManagement({
                              hover:bg-[#b44d7a] disabled:opacity-50 transition-colors"
                 >
                   {t('admin.resetPasswordConfirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Role Dialog */}
+      {roleEditClinicianId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-xl border border-[#d0d0c8] shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-base font-semibold mb-4">
+              {t('admin.changeRoleTitle')}
+            </h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-[#555] mb-1">
+                  {t('admin.role')}
+                </label>
+                <select
+                  value={roleEditValue}
+                  onChange={(e) => setRoleEditValue(e.target.value as Role)}
+                  className="w-full px-3 py-2 rounded-lg border border-[#d0d0c8] text-sm
+                             focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
+                >
+                  <option value="clinician">{t('admin.roles.clinician')}</option>
+                  <option value="admin">{t('admin.roles.admin')}</option>
+                  <option value="pi">{t('admin.roles.pi')}</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRoleEditClinicianId(null)}
+                  className="flex-1 py-2 text-sm rounded-lg border border-[#d0d0c8] hover:bg-[#f0f0ea] transition-colors"
+                >
+                  {t('admin.dialog.cancel')}
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleRoleChange}
+                  className="flex-1 py-2 text-sm font-semibold rounded-lg bg-[#c95a8a] text-white
+                             hover:bg-[#b44d7a] disabled:opacity-50 transition-colors"
+                >
+                  {t('admin.changeRoleSave')}
                 </button>
               </div>
             </div>

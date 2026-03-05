@@ -2,7 +2,8 @@
  * Translation utility for clinical notes using DeepL API.
  *
  * Uses DeepL Free API (500,000 chars/month) — far more than this study needs.
- * DeepL is widely regarded as the highest-quality EN↔FR translator available.
+ * Supports EN, FR, DE, ES, IT. Translates notes to English as common language
+ * (or to French if source is English).
  *
  * Requires DEEPL_API_KEY environment variable.
  * Falls back gracefully: if translation fails, returns null.
@@ -10,8 +11,8 @@
 
 export async function translateText(
   text: string,
-  sourceLang: 'en' | 'fr',
-  targetLang: 'en' | 'fr',
+  sourceLang: string,
+  targetLang: string,
 ): Promise<string | null> {
   if (!text.trim()) return null;
   if (sourceLang === targetLang) return null;

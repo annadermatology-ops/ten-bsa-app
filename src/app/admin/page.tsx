@@ -7,13 +7,14 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ChangePasswordDialog } from '@/components/ui/ChangePasswordDialog';
 import { createClient } from '@/lib/supabase/client';
-import { getCurrentClinician, listClinicians } from './actions';
+import { getCurrentClinician, listClinicians, listStudySites } from './actions';
 import { AdminTabs, type AdminTab } from './components/AdminTabs';
 import { PatientOverview } from './components/PatientOverview';
 import { ClinicianManagement } from './components/ClinicianManagement';
+import { SiteManagement } from './components/SiteManagement';
 import { ExportPanel } from './components/ExportPanel';
 import { AuditLogViewer } from './components/AuditLogViewer';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, StudySite } from '@/lib/supabase/types';
 
 type Clinician = Database['public']['Tables']['clinicians']['Row'];
 
@@ -22,6 +23,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<Clinician | null>(null);
   const [clinicians, setClinicians] = useState<Clinician[]>([]);
+  const [sites, setSites] = useState<StudySite[]>([]);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
@@ -30,12 +32,14 @@ export default function AdminPage() {
   }, []);
 
   async function loadData() {
-    const [user, list] = await Promise.all([
+    const [user, list, siteList] = await Promise.all([
       getCurrentClinician(),
       listClinicians(),
+      listStudySites(),
     ]);
     setCurrentUser(user);
     setClinicians(list);
+    setSites(siteList);
 
     // Redirect non-admin users
     if (user && !['admin', 'pi'].includes(user.role)) {
@@ -103,15 +107,19 @@ export default function AdminPage() {
 
       {/* Tab content */}
       <div className="max-w-4xl mx-auto p-4">
-        {activeTab === 'overview' && <PatientOverview />}
+        {activeTab === 'overview' && <PatientOverview sites={sites} />}
         {activeTab === 'clinicians' && (
           <ClinicianManagement
             currentUser={currentUser}
             initialClinicians={clinicians}
+            sites={sites}
             onRefresh={loadData}
           />
         )}
-        {activeTab === 'export' && <ExportPanel />}
+        {activeTab === 'sites' && (
+          <SiteManagement initialSites={sites} onRefresh={loadData} />
+        )}
+        {activeTab === 'export' && <ExportPanel sites={sites} />}
         {activeTab === 'auditLog' && <AuditLogViewer />}
       </div>
 

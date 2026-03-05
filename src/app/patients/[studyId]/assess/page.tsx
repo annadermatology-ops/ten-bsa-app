@@ -13,8 +13,13 @@ import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { PhotoEditor } from '@/components/photos/PhotoEditor';
 import { getPatient, getPatientAssessmentCount, getPreviousAssessmentMaps, submitAssessment } from '../../actions';
+import { getCurrentClinician } from '@/app/admin/actions';
+import { getStudySites } from '@/lib/sites';
+import { SiteSelect } from '@/components/ui/SiteSelect';
+import { SiteLabel } from '@/components/ui/SiteLabel';
+import { findNearestSite } from '@/lib/geo';
 import { extractPhotoMetadata, type PhotoMetadata } from '@/lib/exif';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, StudySite } from '@/lib/supabase/types';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
 
@@ -76,6 +81,11 @@ export default function AssessmentPage() {
   const [scortenBicarb, setScorenBicarb] = useState<boolean | null>(null);
   const [scortenGlucose, setScorenGlucose] = useState<boolean | null>(null);
 
+  // Site selection + geolocation
+  const [sites, setSites] = useState<StudySite[]>([]);
+  const [assessmentSite, setAssessmentSite] = useState('');
+  const [geoHint, setGeoHint] = useState<string | null>(null);
+
   // Load previous body maps
   const [showLoadPrompt, setShowLoadPrompt] = useState(false);
   const [previousMaps, setPreviousMaps] = useState<{
@@ -91,7 +101,12 @@ export default function AssessmentPage() {
 
   useEffect(() => {
     async function load() {
-      const p = await getPatient(studyId);
+      const [p, siteList, clinician] = await Promise.all([
+        getPatient(studyId),
+        getStudySites(),
+        getCurrentClinician(),
+      ]);
+      setSites(siteList);
       setPatient(p);
       setLoading(false);
       if (!p) {
@@ -102,17 +117,52 @@ export default function AssessmentPage() {
       const count = await getPatientAssessmentCount(p.id);
       setIsFirstAssessment(count === 0);
 
-      // If there are previous assessments, fetch the most recent maps
+      // If there are previous assessments, fetch the most recent maps + site
       if (count > 0) {
         const maps = await getPreviousAssessmentMaps(p.id);
         if (maps) {
           setPreviousMaps(maps);
           setShowLoadPrompt(true);
+          // Default site: last assessment's site
+          if (maps.site) {
+            setAssessmentSite(maps.site);
+          } else {
+            setAssessmentSite(clinician?.site || p.site);
+          }
+        } else {
+          setAssessmentSite(clinician?.site || p.site);
         }
+      } else {
+        // First assessment: use clinician's site
+        setAssessmentSite(clinician?.site || p.site);
       }
     }
     load();
   }, [studyId, router]);
+
+  // Geolocation hint — one-shot, non-blocking
+  useEffect(() => {
+    if (sites.length === 0 || !assessmentSite) return;
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const nearest = findNearestSite(
+          position.coords.latitude,
+          position.coords.longitude,
+          sites,
+        );
+        // Show hint if nearest site is within 100km and differs from current selection
+        if (nearest && nearest.distanceKm < 100 && nearest.site.key !== assessmentSite) {
+          setGeoHint(nearest.site.key);
+        }
+      },
+      () => {
+        // Permission denied or error — silently ignore
+      },
+      { timeout: 10000, maximumAge: 300000 },
+    );
+  }, [sites, assessmentSite]);
 
   async function handleLoadPreviousMaps() {
     if (!engine || !previousMaps) return;
@@ -312,12 +362,13 @@ export default function AssessmentPage() {
 
       const result = await submitAssessment({
         patientId: patient.id,
+        site: assessmentSite,
         tbsaPercent: Math.round(calc.tbsa * 10) / 10,
         dbsaPercent: Math.round(calc.dbsa * 10) / 10,
         tbsaRegions,
         dbsaRegions,
         notes,
-        notesLanguage: (locale === 'fr' ? 'fr' : 'en') as 'en' | 'fr',
+        notesLanguage: locale,
         albuminLevel:
           parsedAlbumin !== null && !isNaN(parsedAlbumin)
             ? parsedAlbumin
@@ -556,8 +607,44 @@ export default function AssessmentPage() {
         onBrushChange={setBrushRadius}
       />
 
-      {/* Albumin + Notes + Photos section */}
+      {/* Site + Albumin + Notes + Photos section */}
       <div className="px-3 py-2 bg-white border-t border-[#d0d0c8] space-y-2">
+        {/* Assessment site */}
+        <div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-[#555] whitespace-nowrap">
+              {t('assessment.site')}
+            </label>
+            <SiteSelect
+              sites={sites}
+              value={assessmentSite}
+              onChange={(val) => {
+                setAssessmentSite(val);
+                setGeoHint(null);
+              }}
+              className="py-1 text-xs"
+            />
+          </div>
+          {geoHint && (
+            <div className="mt-1 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5">
+              <span className="text-xs text-blue-700">
+                {t('assessment.geoHint', { site: '' })}
+                <SiteLabel sites={sites} siteKey={geoHint} className="font-semibold" />.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setAssessmentSite(geoHint);
+                  setGeoHint(null);
+                }}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+              >
+                {t('assessment.geoSwitch')}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Albumin level */}
         <div className="flex items-center gap-2">
           <label className="text-xs font-semibold text-[#555] whitespace-nowrap">
@@ -965,6 +1052,16 @@ export default function AssessmentPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Site */}
+              {assessmentSite && (
+                <div className="flex items-center gap-2 text-xs bg-[#f8f8f5] rounded-lg px-3 py-2">
+                  <span className="font-semibold text-[#555]">
+                    {t('assessment.confirmSite')}:
+                  </span>
+                  <SiteLabel sites={sites} siteKey={assessmentSite} />
+                </div>
+              )}
 
               {/* Body map previews */}
               {(confirmPreviews.anterior || confirmPreviews.posterior) && (

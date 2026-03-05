@@ -7,7 +7,22 @@
  */
 
 export type Role = 'clinician' | 'admin' | 'pi';
-export type Site = 'france' | 'england';
+export type Site = string;
+
+export const SUPPORTED_LOCALES = ['en', 'fr', 'de', 'es', 'it', 'sr'] as const;
+export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
+export interface StudySite {
+  key: string;
+  display_names: Record<string, string>;
+  default_language: string;
+  is_active: boolean;
+  sort_order: number;
+  latitude: number | null;
+  longitude: number | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Database {
   public: {
@@ -86,6 +101,7 @@ export interface Database {
           notes: string | null;
           notes_language: string | null;
           notes_translation: string | null;
+          site: string | null;
           assessment_date: string;
           created_at: string;
           is_deleted: boolean;
@@ -116,6 +132,7 @@ export interface Database {
           notes?: string | null;
           notes_language?: string | null;
           notes_translation?: string | null;
+          site?: string | null;
           assessment_date: string;
           // SCORTEN (first assessment only)
           scorten_score?: number | null;
@@ -185,7 +202,6 @@ export interface Database {
     Functions: Record<string, never>;
     Enums: {
       user_role: Role;
-      study_site: Site;
     };
   };
 }

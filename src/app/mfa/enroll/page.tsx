@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { cleanupUnverifiedFactors } from './actions';
+import { setLocaleForClinicianSite } from '@/i18n/actions';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -100,6 +101,7 @@ export default function MfaEnrollPage() {
       }
 
       // Success — MFA is now enrolled and session is aal2
+      await setLocaleForClinicianSite();
       router.push('/');
       router.refresh();
     });

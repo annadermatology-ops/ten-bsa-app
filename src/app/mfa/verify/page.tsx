@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
+import { setLocaleForClinicianSite } from '@/i18n/actions';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useRateLimit } from '@/hooks/useRateLimit';
@@ -97,6 +98,7 @@ export default function MfaVerifyPage() {
 
       // Success — session is now aal2
       resetAttempts();
+      await setLocaleForClinicianSite();
       router.push('/');
       router.refresh();
     });
