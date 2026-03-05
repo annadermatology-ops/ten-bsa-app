@@ -150,13 +150,23 @@ export default function LoginPage() {
         <p className="text-center text-[10px] text-[#999] mt-6">
           {t('login.footer')}
         </p>
-        <div className="text-center mt-3">
-          <Link
-            href="/demo"
-            className="text-[11px] text-[#c95a8a] hover:text-[#b44d7a] font-medium transition-colors"
-          >
-            {t('demo.tryIt')} →
-          </Link>
+        <div className="text-center mt-3 space-y-1.5">
+          <div>
+            <Link
+              href="/demo"
+              className="text-[11px] text-[#c95a8a] hover:text-[#b44d7a] font-medium transition-colors"
+            >
+              {t('demo.tryIt')} →
+            </Link>
+          </div>
+          <div>
+            <Link
+              href="/setup"
+              className="text-[11px] text-[#888] hover:text-[#c95a8a] font-medium transition-colors"
+            >
+              {t('setup.launchLink')} →
+            </Link>
+          </div>
         </div>
       </div>
     </div>

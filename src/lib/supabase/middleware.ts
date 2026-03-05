@@ -37,6 +37,7 @@ export async function updateSession(request: NextRequest) {
     isLoginPage ||
     pathname === '/forgot-password' ||
     pathname === '/demo' ||
+    pathname === '/setup' ||
     pathname.startsWith('/auth/callback');
   const isResetPasswordPage = pathname === '/reset-password';
 
