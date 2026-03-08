@@ -63,6 +63,7 @@ export interface Database {
           study_id: string;
           initials: string;
           date_of_birth: string;
+          sex: 'M' | 'F' | null;
           site: Site;
           created_by: string;
           created_at: string;
@@ -73,6 +74,7 @@ export interface Database {
           study_id: string;
           initials: string;
           date_of_birth: string;
+          sex?: 'M' | 'F' | null;
           site: Site;
           created_by: string;
         };
@@ -80,6 +82,7 @@ export interface Database {
           study_id?: string;
           initials?: string;
           date_of_birth?: string;
+          sex?: 'M' | 'F' | null;
           site?: Site;
         };
       };

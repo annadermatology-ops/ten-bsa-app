@@ -36,6 +36,7 @@ export function ExportPanel({ sites }: ExportPanelProps) {
       const headers = [
         'Study ID',
         'Initials',
+        'Sex',
         'Patient Site',
         'Assessment Site',
         'Assessment Date',
@@ -65,6 +66,7 @@ export function ExportPanel({ sites }: ExportPanelProps) {
         const base = [
           row.study_id,
           row.initials,
+          row.sex,
           row.patient_site,
           row.assessment_site,
           row.assessment_date,

@@ -171,7 +171,7 @@ export default function PatientDetailPage() {
           <h2 className="text-sm font-semibold text-[#555] mb-2">
             {t('patientDetail.patientInfo')}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
             <div>
               <span className="text-[#999]">{t('patients.studyId')}</span>
               <p className="font-medium">{patient.study_id}</p>
@@ -179,6 +179,12 @@ export default function PatientDetailPage() {
             <div>
               <span className="text-[#999]">{t('patients.initials')}</span>
               <p className="font-medium">{patient.initials}</p>
+            </div>
+            <div>
+              <span className="text-[#999]">{t('patients.sex')}</span>
+              <p className="font-medium">
+                {patient.sex === 'M' ? t('patients.sexMale') : patient.sex === 'F' ? t('patients.sexFemale') : '—'}
+              </p>
             </div>
             <div>
               <span className="text-[#999]">{t('patients.dob')}</span>

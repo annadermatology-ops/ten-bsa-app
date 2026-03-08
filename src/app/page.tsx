@@ -43,6 +43,7 @@ export default function PatientsPage() {
   const [formStudyId, setFormStudyId] = useState('');
   const [formInitials, setFormInitials] = useState('');
   const [formDob, setFormDob] = useState('');
+  const [formSex, setFormSex] = useState<'M' | 'F' | ''>('');
   const [formSite, setFormSite] = useState<Site>('');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
@@ -83,6 +84,7 @@ export default function PatientsPage() {
         studyId: formStudyId.trim(),
         initials: formInitials.trim(),
         dateOfBirth: formDob,
+        sex: formSex || null,
         site: formSite,
       });
 
@@ -97,6 +99,7 @@ export default function PatientsPage() {
         setFormStudyId('');
         setFormInitials('');
         setFormDob('');
+        setFormSex('');
         setFormSite(clinician?.site || (sites.length > 0 ? sites[0].key : ''));
         await loadData();
       }
@@ -222,6 +225,9 @@ export default function PatientsPage() {
                     {t('patients.initials')}
                   </th>
                   <th className="text-left px-4 py-2.5 font-semibold text-[#555] hidden sm:table-cell">
+                    {t('patients.sex')}
+                  </th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-[#555] hidden sm:table-cell">
                     {t('patients.dob')}
                   </th>
                   <th className="text-left px-4 py-2.5 font-semibold text-[#555] hidden sm:table-cell">
@@ -251,6 +257,9 @@ export default function PatientsPage() {
                       </td>
                       <td className="px-4 py-2.5 text-[#666]">
                         {p.initials}
+                      </td>
+                      <td className="px-4 py-2.5 text-[#666] hidden sm:table-cell">
+                        {p.sex === 'M' ? t('patients.sexMale') : p.sex === 'F' ? t('patients.sexFemale') : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-[#666] hidden sm:table-cell">
                         {formatDate(p.date_of_birth)}
@@ -380,6 +389,28 @@ export default function PatientsPage() {
                     className="w-full px-3 py-2 rounded-lg border border-[#d0d0c8] text-sm
                                focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#555] mb-1">
+                  {t('patients.dialog.sex')}
+                </label>
+                <div className="flex gap-2">
+                  {(['M', 'F'] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setFormSex(formSex === v ? '' : v)}
+                      className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
+                        formSex === v
+                          ? 'bg-[#c95a8a] text-white border-[#c95a8a]'
+                          : 'border-[#d0d0c8] text-[#555] hover:bg-[#f0f0ea]'
+                      }`}
+                    >
+                      {v === 'M' ? t('patients.sexMale') : t('patients.sexFemale')}
+                    </button>
+                  ))}
                 </div>
               </div>
 

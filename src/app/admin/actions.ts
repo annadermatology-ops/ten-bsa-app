@@ -161,6 +161,7 @@ export interface PatientOverviewRow {
   id: string;
   study_id: string;
   initials: string;
+  sex: 'M' | 'F' | null;
   site: Site;
   assessment_count: number;
   latest_tbsa: number | null;
@@ -206,6 +207,7 @@ export async function getPatientOverview(): Promise<PatientOverviewRow[]> {
       id: p.id,
       study_id: p.study_id,
       initials: p.initials,
+      sex: (p.sex as 'M' | 'F' | null) ?? null,
       site: p.site as Site,
       assessment_count: patientAssessments.length,
       latest_tbsa: latest ? Number(latest.tbsa_percent) : null,
@@ -294,6 +296,7 @@ export async function getAuditLog(params: {
 export interface ExportRow {
   study_id: string;
   initials: string;
+  sex: string;
   patient_site: string;
   assessment_site: string;
   assessment_date: string;
@@ -374,6 +377,7 @@ export async function getExportData(params: {
     return {
       study_id: patient?.study_id ?? '',
       initials: patient?.initials ?? '',
+      sex: (patient?.sex as string) ?? '',
       patient_site: patient?.site ?? '',
       assessment_site: (a.site as string) ?? patient?.site ?? '',
       assessment_date: a.assessment_date,

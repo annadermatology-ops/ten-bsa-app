@@ -34,6 +34,7 @@ export async function createPatient(formData: {
   studyId: string;
   initials: string;
   dateOfBirth: string;
+  sex: 'M' | 'F' | null;
   site: Site;
 }) {
   const supabase = await createClient();
@@ -49,6 +50,7 @@ export async function createPatient(formData: {
     study_id: formData.studyId,
     initials: formData.initials.toUpperCase(),
     date_of_birth: formData.dateOfBirth,
+    sex: formData.sex,
     site: formData.site,
     created_by: user.id,
   });

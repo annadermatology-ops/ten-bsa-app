@@ -65,6 +65,9 @@ export function PatientOverview({ sites }: PatientOverviewProps) {
                 {t('patients.initials')}
               </th>
               <th className="text-left px-3 py-2 font-semibold text-[#555]">
+                {t('patients.sex')}
+              </th>
+              <th className="text-left px-3 py-2 font-semibold text-[#555]">
                 {t('patients.site')}
               </th>
               <th className="text-center px-3 py-2 font-semibold text-[#555]">
@@ -93,6 +96,9 @@ export function PatientOverview({ sites }: PatientOverviewProps) {
               >
                 <td className="px-3 py-2 font-medium">{row.study_id}</td>
                 <td className="px-3 py-2 text-[#666]">{row.initials}</td>
+                <td className="px-3 py-2 text-[#666]">
+                  {row.sex === 'M' ? t('patients.sexMale') : row.sex === 'F' ? t('patients.sexFemale') : '—'}
+                </td>
                 <td className="px-3 py-2"><SiteLabel sites={sites} siteKey={row.site} /></td>
                 <td className="px-3 py-2 text-center">{row.assessment_count}</td>
                 <td className="px-3 py-2 text-right">
