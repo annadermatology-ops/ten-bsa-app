@@ -20,7 +20,9 @@ import { listClinicians, getCurrentClinician } from '../../admin/actions';
 import type { Database } from '@/lib/supabase/types';
 
 type Patient = Database['public']['Tables']['patients']['Row'];
-type Assessment = Database['public']['Tables']['assessments']['Row'];
+type Assessment = Database['public']['Tables']['assessments']['Row'] & {
+  crp_level?: number | null;
+};
 type Clinician = Database['public']['Tables']['clinicians']['Row'];
 type AssessmentPhoto = Database['public']['Tables']['assessment_photos']['Row'];
 
@@ -258,6 +260,16 @@ export default function PatientDetailPage() {
                             </span>
                             <span className="text-xs text-[#999]">
                               {t('patientDetail.albumin')} (g/L)
+                            </span>
+                          </>
+                        )}
+                        {a.crp_level !== null && a.crp_level !== undefined && (
+                          <>
+                            <span className="text-[#dc2626] font-mono text-lg font-medium">
+                              {Number(a.crp_level).toFixed(1)}
+                            </span>
+                            <span className="text-xs text-[#999]">
+                              {t('patientDetail.crp')} (mg/L)
                             </span>
                           </>
                         )}

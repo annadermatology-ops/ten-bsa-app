@@ -57,6 +57,7 @@ export default function AssessmentPage() {
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState('');
   const [albuminLevel, setAlbuminLevel] = useState('');
+  const [crpLevel, setCrpLevel] = useState('');
   const [photos, setPhotos] = useState<PhotoEntry[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -334,9 +335,12 @@ export default function AssessmentPage() {
         dbsaRegions[r.name] = r.contribution;
       }
 
-      // Parse albumin
+      // Parse albumin + CRP
       const parsedAlbumin = albuminLevel.trim()
         ? parseFloat(albuminLevel.trim())
+        : null;
+      const parsedCrp = crpLevel.trim()
+        ? parseFloat(crpLevel.trim())
         : null;
 
       // Build SCORTEN payload for first assessment
@@ -372,6 +376,10 @@ export default function AssessmentPage() {
         albuminLevel:
           parsedAlbumin !== null && !isNaN(parsedAlbumin)
             ? parsedAlbumin
+            : null,
+        crpLevel:
+          parsedCrp !== null && !isNaN(parsedCrp)
+            ? parsedCrp
             : null,
         photos: photos.map((p) => ({
           dataUrl: p.dataUrl,
@@ -426,6 +434,9 @@ export default function AssessmentPage() {
 
   const parsedAlbuminForDisplay = albuminLevel.trim()
     ? parseFloat(albuminLevel.trim())
+    : null;
+  const parsedCrpForDisplay = crpLevel.trim()
+    ? parseFloat(crpLevel.trim())
     : null;
 
   // --- SCORTEN auto-computed values ---
@@ -663,6 +674,27 @@ export default function AssessmentPage() {
                          focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
             />
             <span className="text-xs text-[#999]">{t('assessment.albuminUnit')}</span>
+          </div>
+        </div>
+
+        {/* CRP level */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-semibold text-[#555] whitespace-nowrap">
+            {t('assessment.crp')}
+          </label>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="1000"
+              value={crpLevel}
+              onChange={(e) => setCrpLevel(e.target.value)}
+              placeholder={t('assessment.crpPlaceholder')}
+              className="w-20 px-2 py-1.5 text-xs rounded-lg border border-[#d0d0c8]
+                         focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]"
+            />
+            <span className="text-xs text-[#999]">{t('assessment.crpUnit')}</span>
           </div>
         </div>
 
@@ -1107,6 +1139,18 @@ export default function AssessmentPage() {
                 </div>
               )}
 
+              {/* CRP */}
+              {parsedCrpForDisplay !== null && !isNaN(parsedCrpForDisplay) && (
+                <div className="flex items-center gap-2 text-xs bg-[#f8f8f5] rounded-lg px-3 py-2">
+                  <span className="font-semibold text-[#555]">
+                    {t('assessment.confirmCrp')}:
+                  </span>
+                  <span className="font-mono font-medium">
+                    {parsedCrpForDisplay} {t('assessment.crpUnit')}
+                  </span>
+                </div>
+              )}
+
               {/* Notes */}
               {notes.trim() && (
                 <div className="text-xs bg-[#f8f8f5] rounded-lg px-3 py-2">
@@ -1166,7 +1210,7 @@ export default function AssessmentPage() {
             </div>
 
             {/* Missing data reminders */}
-            {(photos.length === 0 || !notes.trim() || parsedAlbuminForDisplay === null || isNaN(parsedAlbuminForDisplay)) && (
+            {(photos.length === 0 || !notes.trim() || parsedAlbuminForDisplay === null || isNaN(parsedAlbuminForDisplay) || parsedCrpForDisplay === null || isNaN(parsedCrpForDisplay)) && (
               <div className="space-y-1.5 mb-3">
                 {photos.length === 0 && (
                   <div className="flex items-center gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-amber-800">
@@ -1184,6 +1228,12 @@ export default function AssessmentPage() {
                   <div className="flex items-center gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-amber-800">
                     <span className="text-base leading-none">&#9888;</span>
                     <span>{t('assessment.missingAlbumin')}</span>
+                  </div>
+                )}
+                {(parsedCrpForDisplay === null || isNaN(parsedCrpForDisplay)) && (
+                  <div className="flex items-center gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-amber-800">
+                    <span className="text-base leading-none">&#9888;</span>
+                    <span>{t('assessment.missingCrp')}</span>
                   </div>
                 )}
               </div>

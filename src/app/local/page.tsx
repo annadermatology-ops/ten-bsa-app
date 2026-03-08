@@ -33,6 +33,7 @@ export default function LocalPage() {
   const [loadMessage, setLoadMessage] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [albumin, setAlbumin] = useState('');
+  const [crp, setCrp] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-dismiss toasts
@@ -60,8 +61,8 @@ export default function LocalPage() {
           layers[`${view}-${layer}`] = engine.exportLayerAsPNG(`draw-${layer}-${view}`);
         }
       }
-      // Also stash albumin value
-      const stash: Record<string, any> = { layers, albumin: albumin || null };
+      // Also stash albumin + CRP values
+      const stash: Record<string, any> = { layers, albumin: albumin || null, crp: crp || null };
       localStorage.setItem(key, JSON.stringify(stash));
     } catch {
       // localStorage full or unavailable — continue with file save
@@ -114,7 +115,7 @@ export default function LocalPage() {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
     setToastMessage(`${t('local.saveSuccess')} — ${filename}`);
-  }, [engine, albumin, t]);
+  }, [engine, albumin, crp, t]);
 
   const processLoadedFile = useCallback(async (file: File) => {
     if (!engine) return;
@@ -149,9 +150,12 @@ export default function LocalPage() {
           }
         }
       }
-      // Restore albumin if present
+      // Restore albumin + CRP if present
       if (parsed.albumin) {
         setAlbumin(parsed.albumin);
+      }
+      if (parsed.crp) {
+        setCrp(parsed.crp);
       }
       setLoadedPatientId(patientId);
       setLoadMessage(t('local.loadSuccess'));
@@ -300,8 +304,8 @@ export default function LocalPage() {
         onBrushChange={setBrushRadius}
       />
 
-      {/* Albumin input */}
-      <div className="px-4 py-3 bg-white border-t border-[#b0b0a8]">
+      {/* Albumin + CRP inputs */}
+      <div className="px-4 py-3 bg-white border-t border-[#b0b0a8] space-y-2">
         <div className="flex items-center gap-2">
           <label htmlFor="albumin" className="text-[11px] font-semibold text-[#555]">
             {t('assessment.albumin')}
@@ -324,7 +328,28 @@ export default function LocalPage() {
             <span className="text-[11px] text-[#888]">{t('assessment.albuminUnit')}</span>
           </div>
         </div>
-        <p className="text-[10px] text-[#999] mt-1">{t('assessment.albuminHelp')}</p>
+        <div className="flex items-center gap-2">
+          <label htmlFor="crp" className="text-[11px] font-semibold text-[#555]">
+            {t('assessment.crp')}
+          </label>
+          <div className="flex items-center gap-1">
+            <input
+              id="crp"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              min="0"
+              max="1000"
+              value={crp}
+              onChange={(e) => setCrp(e.target.value)}
+              placeholder={t('assessment.crpPlaceholder')}
+              className="w-20 px-2 py-1.5 rounded-md border border-[#d0d0c8] text-sm text-center
+                         focus:outline-none focus:ring-2 focus:ring-[#c95a8a]/30 focus:border-[#c95a8a]
+                         placeholder:text-[#aaa]"
+            />
+            <span className="text-[11px] text-[#888]">{t('assessment.crpUnit')}</span>
+          </div>
+        </div>
       </div>
 
       {/* Info bar */}

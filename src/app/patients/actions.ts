@@ -247,6 +247,7 @@ export async function submitAssessment(payload: {
   notes: string;
   notesLanguage: string;
   albuminLevel: number | null;
+  crpLevel: number | null;
   photos: { dataUrl: string; fileName: string; fileSize: number; mimeType: string; caption: string; metadata?: Record<string, unknown> | null }[];
   canvasImages: {
     anteriorTbsa: string; // data URL
@@ -372,6 +373,7 @@ export async function submitAssessment(payload: {
       ? `${basePath}/composite-anterior.png`
       : null,
     albumin_level: payload.albuminLevel,
+    crp_level: payload.crpLevel,
     notes: payload.notes || null,
     notes_language: payload.notes?.trim() ? payload.notesLanguage : null,
     notes_translation: notesTranslation,

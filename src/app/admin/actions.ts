@@ -300,6 +300,7 @@ export interface ExportRow {
   tbsa_percent: number;
   dbsa_percent: number;
   albumin_level: number | null;
+  crp_level: number | null;
   scorten_score: number | null;
   clinician_name: string;
   notes: string | null;
@@ -321,7 +322,9 @@ export async function getExportData(params: {
   const supabase = await createClient();
 
   type PatientRow = Database['public']['Tables']['patients']['Row'];
-  type AssessmentRow = Database['public']['Tables']['assessments']['Row'];
+  type AssessmentRow = Database['public']['Tables']['assessments']['Row'] & {
+    crp_level?: number | null;
+  };
 
   // Get patients (with optional site filter)
   let patientQuery = supabase.from('patients').select('*');
@@ -377,6 +380,7 @@ export async function getExportData(params: {
       tbsa_percent: Number(a.tbsa_percent),
       dbsa_percent: Number(a.dbsa_percent),
       albumin_level: a.albumin_level !== null ? Number(a.albumin_level) : null,
+      crp_level: a.crp_level !== null ? Number(a.crp_level) : null,
       scorten_score: a.scorten_score,
       clinician_name: clinicianMap[a.clinician_id] ?? '',
       notes: a.notes,
