@@ -84,9 +84,10 @@ export default function LocalPage() {
       }
     }
 
-    // Try Web Share API (iOS Safari, Android) — native share sheet
+    // Try Web Share API on mobile only (iOS Safari, Android) — native share sheet
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const file = new File([blob], filename, { type: 'image/png' });
-    if (navigator.canShare?.({ files: [file] })) {
+    if (isMobile && navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file] });
         return;
