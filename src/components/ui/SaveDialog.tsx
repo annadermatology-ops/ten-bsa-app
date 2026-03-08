@@ -19,7 +19,7 @@ function todayISO(): string {
 }
 
 export function SaveDialog({ open, onClose, onSave, defaultPatientId }: SaveDialogProps) {
-  const t = useTranslations('demo');
+  const t = useTranslations('local');
   const [patientId, setPatientId] = useState('');
   const [date, setDate] = useState(todayISO);
   const [saving, setSaving] = useState(false);
