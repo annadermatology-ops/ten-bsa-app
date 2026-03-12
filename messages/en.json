@@ -37,6 +37,7 @@
     "error": "Invalid email or password. Please try again.",
     "lockedOut": "Too many failed attempts. Please wait {seconds}s before trying again.",
     "forgotPassword": "Forgot password?",
+    "expiredLink": "Your password reset link has expired or is invalid. Please request a new one.",
     "footer": "Contact the study administrator if you need an account."
   },
   "forgotPassword": {

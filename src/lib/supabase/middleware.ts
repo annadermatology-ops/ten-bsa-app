@@ -38,7 +38,8 @@ export async function updateSession(request: NextRequest) {
     pathname === '/forgot-password' ||
     pathname === '/local' ||
     pathname === '/setup' ||
-    pathname.startsWith('/auth/callback');
+    pathname.startsWith('/auth/callback') ||
+    pathname.startsWith('/auth/confirm');
   const isResetPasswordPage = pathname === '/reset-password';
 
   // --- Unauthenticated users ---

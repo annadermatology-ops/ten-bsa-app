@@ -37,6 +37,7 @@
     "error": "E-mail ou mot de passe invalide. Veuillez réessayer.",
     "lockedOut": "Trop de tentatives échouées. Veuillez patienter {seconds}s avant de réessayer.",
     "forgotPassword": "Mot de passe oublié ?",
+    "expiredLink": "Votre lien de réinitialisation a expiré ou est invalide. Veuillez en demander un nouveau.",
     "footer": "Contactez l'administrateur de l'étude si vous avez besoin d'un compte."
   },
   "forgotPassword": {
