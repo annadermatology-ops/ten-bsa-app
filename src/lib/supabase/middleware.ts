@@ -56,8 +56,8 @@ export async function updateSession(request: NextRequest) {
     const currentLevel = aalData?.currentLevel ?? 'aal1';
     const nextLevel = aalData?.nextLevel ?? 'aal1';
 
-    // Allow reset-password page without MFA (recovery session)
-    if (isResetPasswordPage) {
+    // Allow reset-password and auth routes without MFA (recovery session)
+    if (isResetPasswordPage || isPublicPage) {
       return supabaseResponse;
     }
 
