@@ -48,12 +48,11 @@ function LoginForm() {
 
       if (verifiedFactors.length > 0) {
         // Has verified TOTP — needs to verify code
-        router.push('/mfa/verify');
+        window.location.href = '/mfa/verify';
       } else {
         // No verified TOTP — needs to enrol
-        router.push('/mfa/enroll');
+        window.location.href = '/mfa/enroll';
       }
-      router.refresh();
     });
   };
 
