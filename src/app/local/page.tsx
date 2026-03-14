@@ -141,6 +141,9 @@ export default function LocalPage() {
     }
 
     try {
+      // Clear existing body maps before loading
+      engine.clearAll();
+
       const parsed = JSON.parse(raw);
       // Support both old format (direct layers object) and new format (with albumin)
       const layers = (parsed.layers ?? parsed) as Record<string, string | null>;
@@ -394,7 +397,7 @@ export default function LocalPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".png"
+        accept=".png,.PNG"
         className="hidden"
         onChange={handleFileSelected}
       />
