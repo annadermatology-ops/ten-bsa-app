@@ -21,7 +21,7 @@
   },
   "info": {
     "tbsa": "T-BSA = Ukupna Površina Tela\n\nSva zahvaćena koža uključujući eritem",
-    "dbsa": "D-BSA = Degradirana Površina Tela\n\nBule, erozije, Nikolsky+, nekroza — eritem isključen"
+    "dbsa": "D-BSA = Damaged Body Surface Area\n\nNecrosis / blisters / erosions / Nikolsky positive"
   },
   "language": {
     "toggle": "EN",

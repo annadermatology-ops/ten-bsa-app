@@ -21,7 +21,7 @@
   },
   "info": {
     "tbsa": "T-BSA = Superficie Corporal Total\n\nToda la piel afectada incluyendo eritema",
-    "dbsa": "D-BSA = Superficie Corporal Degradada\n\nAmpollas, erosiones, Nikolsky+, necrosis — eritema excluido"
+    "dbsa": "D-BSA = Damaged Body Surface Area\n\nNecrosis / blisters / erosions / Nikolsky positive"
   },
   "language": {
     "toggle": "EN",

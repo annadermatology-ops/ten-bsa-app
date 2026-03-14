@@ -21,7 +21,7 @@
   },
   "info": {
     "tbsa": "T-BSA = Superficie Corporea Totale\n\nTutta la cute coinvolta, incluso l'eritema",
-    "dbsa": "D-BSA = Superficie Corporea Degradata\n\nBolle, erosioni, Nikolsky+, necrosi — eritema escluso"
+    "dbsa": "D-BSA = Damaged Body Surface Area\n\nNecrosis / blisters / erosions / Nikolsky positive"
   },
   "language": {
     "toggle": "EN",

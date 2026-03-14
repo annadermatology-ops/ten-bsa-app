@@ -21,7 +21,7 @@
   },
   "info": {
     "tbsa": "T-BSA = Total Body Surface Area\n\nAll involved skin including erythema",
-    "dbsa": "D-BSA = Degraded Body Surface Area\n\nBlisters, erosions, Nikolsky+, necrotic — erythema excluded"
+    "dbsa": "D-BSA = Damaged Body Surface Area\n\nNecrosis / blisters / erosions / Nikolsky positive"
   },
   "language": {
     "toggle": "FR",
