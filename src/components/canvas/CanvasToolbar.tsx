@@ -31,15 +31,15 @@ export function CanvasToolbar({ currentTool, onToolChange }: CanvasToolbarProps)
             : 'border-[#c95a8a] bg-[rgba(201,90,138,0.15)] text-[#c95a8a]';
         } else if (tool.id === 'dbsa') {
           className += isActive
-            ? 'border-[#636e72] bg-[#636e72] text-white'
-            : 'border-[#636e72] bg-[rgba(99,110,114,0.15)] text-[#636e72]';
+            ? 'border-[#8395a7] bg-[#8395a7] text-white'
+            : 'border-[#8395a7] bg-[rgba(131,149,167,0.15)] text-[#8395a7]';
         } else {
           className += isActive
             ? 'border-[#333] bg-[#333] text-white'
             : 'border-[#b0b0a8] bg-white text-[#555]';
         }
 
-        const infoColor = tool.id === 'tbsa' ? '#c95a8a' : tool.id === 'dbsa' ? '#636e72' : null;
+        const infoColor = tool.id === 'tbsa' ? '#c95a8a' : tool.id === 'dbsa' ? '#8395a7' : null;
 
         return (
           <div key={tool.id} className="flex items-center gap-1.5">

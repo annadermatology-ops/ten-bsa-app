@@ -112,7 +112,7 @@ export function PatientOverview({ sites }: PatientOverviewProps) {
                 </td>
                 <td className="px-3 py-2 text-right">
                   {row.latest_dbsa !== null ? (
-                    <span className="text-[#636e72] font-medium">
+                    <span className="text-[#8395a7] font-medium">
                       {row.latest_dbsa.toFixed(1)}%
                     </span>
                   ) : (

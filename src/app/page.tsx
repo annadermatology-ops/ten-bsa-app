@@ -274,7 +274,7 @@ export default function PatientsPage() {
                               {Number(latest.tbsa_percent).toFixed(1)}%
                             </span>
                             {' / '}
-                            <span className="text-[#636e72] font-medium">
+                            <span className="text-[#8395a7] font-medium">
                               {Number(latest.dbsa_percent).toFixed(1)}%
                             </span>
                             <span className="text-[#999] text-xs ml-2">

@@ -296,7 +296,7 @@ export class DrawingEngine {
     const tbsaText = `TBSA: ${calc.tbsa.toFixed(1)}%`;
     ctx.fillText(tbsaText, padding, 86);
     const tbsaWidth = ctx.measureText(tbsaText).width;
-    ctx.fillStyle = '#636e72';
+    ctx.fillStyle = '#8395a7';
     ctx.fillText(`DBSA: ${calc.dbsa.toFixed(1)}%`, padding + tbsaWidth + 30, 86);
 
     // Body maps

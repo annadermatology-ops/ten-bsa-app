@@ -12,7 +12,7 @@ interface BrushControlsProps {
 
 const TOOL_COLORS: Record<Tool, string> = {
   tbsa: '#c95a8a',
-  dbsa: '#636e72',
+  dbsa: '#8395a7',
   eraser: '#999',
 };
 

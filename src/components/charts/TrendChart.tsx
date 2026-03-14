@@ -72,7 +72,7 @@ export function TrendChart({ data }: TrendChartProps) {
           <span className="text-[#666]">{t('patientDetail.tbsa')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-0.5 bg-[#636e72] rounded" />
+          <div className="w-3 h-0.5 bg-[#8395a7] rounded" />
           <span className="text-[#666]">{t('patientDetail.dbsa')}</span>
         </div>
       </div>
@@ -137,7 +137,7 @@ export function TrendChart({ data }: TrendChartProps) {
         <path
           d={dbsaPath}
           fill="none"
-          stroke="#636e72"
+          stroke="#8395a7"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -163,7 +163,7 @@ export function TrendChart({ data }: TrendChartProps) {
             cx={xScale(i)}
             cy={yScale(d.dbsa)}
             r="3.5"
-            fill="#636e72"
+            fill="#8395a7"
             stroke="white"
             strokeWidth="1.5"
           />

@@ -523,10 +523,10 @@ export default function AssessmentPage() {
             </span>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-[#636e72]">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-[#8395a7]">
               {t('tools.dbsa')}
             </span>
-            <span className="font-mono text-[22px] font-medium text-[#636e72]">
+            <span className="font-mono text-[22px] font-medium text-[#8395a7]">
               {calculation.dbsa.toFixed(1)}%
             </span>
           </div>
@@ -574,7 +574,7 @@ export default function AssessmentPage() {
       )}
 
       {/* Main drawing area */}
-      <div className="relative flex justify-center py-2">
+      <div className="relative flex justify-center py-2 pl-[60px] sm:pl-0">
         {/* Side tools */}
         <div className="absolute left-2 top-12 z-20">
           <CanvasToolbar currentTool={currentTool} onToolChange={setTool} />
@@ -1090,10 +1090,10 @@ export default function AssessmentPage() {
                     </span>
                   </div>
                   <div className="text-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wide text-[#636e72] block">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[#8395a7] block">
                       {t('tools.dbsa')}
                     </span>
-                    <span className="font-mono text-2xl font-medium text-[#636e72]">
+                    <span className="font-mono text-2xl font-medium text-[#8395a7]">
                       {calculation.dbsa.toFixed(1)}%
                     </span>
                   </div>

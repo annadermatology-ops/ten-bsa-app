@@ -253,7 +253,7 @@ export default function PatientDetailPage() {
                         <span className="text-xs text-[#999]">
                           {t('patientDetail.tbsa')}
                         </span>
-                        <span className="text-[#636e72] font-mono text-lg font-medium">
+                        <span className="text-[#8395a7] font-mono text-lg font-medium">
                           {Number(a.dbsa_percent).toFixed(1)}%
                         </span>
                         <span className="text-xs text-[#999]">
