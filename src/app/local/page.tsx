@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { View } from '@/engine';
+import { View, DrawingEngine } from '@/engine';
 import { useDrawingEngine } from '@/hooks/useDrawingEngine';
 import { BodyCanvas } from '@/components/canvas/BodyCanvas';
 import { CanvasToolbar } from '@/components/canvas/CanvasToolbar';
@@ -70,7 +70,7 @@ export default function LocalPage() {
       // localStorage full or unavailable — continue with file save
     }
 
-    const blob = await engine.exportSummaryBlob(patientId, date);
+    const blob = await engine.exportSummaryBlob(patientId, date, { albumin: albumin || null, crp: crp || null });
     if (!blob) throw new Error('Export failed');
 
     const filename = `${date} ${patientId}.png`;
@@ -125,17 +125,29 @@ export default function LocalPage() {
     // Parse filename: "2026-03-02 TEN-001.png" → date + patientId
     const basename = file.name.replace(/\.png$/i, '');
     const spaceIdx = basename.indexOf(' ');
-    if (spaceIdx < 1) {
-      setLoadMessage(t('local.loadNoData'));
-      return;
-    }
-    const date = basename.slice(0, spaceIdx);
-    const patientId = basename.slice(spaceIdx + 1);
+    const patientId = spaceIdx >= 1 ? basename.slice(spaceIdx + 1) : '';
 
-    // Look up localStorage
-    const key = `ten-local:${patientId}:${date}`;
-    const raw = localStorage.getItem(key);
-    if (!raw) {
+    // Try extracting embedded layer data from the PNG file itself
+    let data = await DrawingEngine.extractLayerData(file);
+
+    // Fallback: try localStorage (for files saved before embedded data was added)
+    if (!data && spaceIdx >= 1) {
+      const date = basename.slice(0, spaceIdx);
+      const key = `ten-local:${patientId}:${date}`;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          data = {
+            layers: (parsed.layers ?? parsed) as Record<string, string | null>,
+            albumin: parsed.albumin ?? null,
+            crp: parsed.crp ?? null,
+          };
+        } catch { /* ignore parse errors */ }
+      }
+    }
+
+    if (!data) {
       setLoadMessage(t('local.loadNoData'));
       return;
     }
@@ -144,25 +156,22 @@ export default function LocalPage() {
       // Clear existing body maps before loading
       engine.clearAll();
 
-      const parsed = JSON.parse(raw);
-      // Support both old format (direct layers object) and new format (with albumin)
-      const layers = (parsed.layers ?? parsed) as Record<string, string | null>;
       for (const view of ['anterior', 'posterior'] as const) {
         for (const layer of ['tbsa', 'dbsa'] as const) {
-          const dataUrl = layers[`${view}-${layer}`];
+          const dataUrl = data.layers[`${view}-${layer}`];
           if (dataUrl) {
             await engine.loadLayerImage(view, layer, dataUrl);
           }
         }
       }
       // Restore albumin + CRP if present
-      if (parsed.albumin) {
-        setAlbumin(parsed.albumin);
+      if (data.albumin) {
+        setAlbumin(data.albumin);
       }
-      if (parsed.crp) {
-        setCrp(parsed.crp);
+      if (data.crp) {
+        setCrp(data.crp);
       }
-      setLoadedPatientId(patientId);
+      if (patientId) setLoadedPatientId(patientId);
       setLoadMessage(t('local.loadSuccess'));
     } catch {
       setLoadMessage(t('local.loadNoData'));
@@ -271,9 +280,9 @@ export default function LocalPage() {
         </div>
 
         {/* Centred column for toggle + canvas */}
-        <div className="flex flex-col items-center pl-[60px] sm:pl-0">
+        <div className="mx-auto max-w-[320px] pl-[60px] pr-2 sm:pl-0 sm:pr-0 sm:w-[68vw]">
           {/* View toggle + Brush controls */}
-          <div className="w-[68vw] max-w-[320px] z-20 mb-1.5">
+          <div className="z-20 mb-1.5">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setActiveView('anterior')}
@@ -306,7 +315,7 @@ export default function LocalPage() {
 
           {/* Canvas — anterior */}
           <div
-            className={`w-[68vw] max-w-[320px] pb-2 ${
+            className={`pb-2 ${
               activeView !== 'anterior' ? 'hidden' : ''
             }`}
           >
@@ -319,7 +328,7 @@ export default function LocalPage() {
 
           {/* Canvas — posterior */}
           <div
-            className={`w-[68vw] max-w-[320px] pb-2 ${
+            className={`pb-2 ${
               activeView !== 'posterior' ? 'hidden' : ''
             }`}
           >

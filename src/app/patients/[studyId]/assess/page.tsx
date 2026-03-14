@@ -581,9 +581,9 @@ export default function AssessmentPage() {
         </div>
 
         {/* Centred column for toggle + canvas */}
-        <div className="flex flex-col items-center pl-[60px] sm:pl-0">
+        <div className="mx-auto max-w-[320px] pl-[60px] pr-2 sm:pl-0 sm:pr-0 sm:w-[68vw]">
           {/* View toggle + Brush controls */}
-          <div className="w-[68vw] max-w-[320px] z-20 mb-1.5">
+          <div className="z-20 mb-1.5">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setActiveView('anterior')}
@@ -616,7 +616,7 @@ export default function AssessmentPage() {
 
           {/* Canvas — anterior */}
           <div
-            className={`w-[68vw] max-w-[320px] pb-2 ${
+            className={`pb-2 ${
               activeView !== 'anterior' ? 'hidden' : ''
             }`}
           >
@@ -629,7 +629,7 @@ export default function AssessmentPage() {
 
           {/* Canvas — posterior */}
           <div
-            className={`w-[68vw] max-w-[320px] pb-2 ${
+            className={`pb-2 ${
               activeView !== 'posterior' ? 'hidden' : ''
             }`}
           >

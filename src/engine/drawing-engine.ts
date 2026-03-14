@@ -255,7 +255,7 @@ export class DrawingEngine {
    * with a header showing patient ID, date, TBSA% and DBSA%.
    * Returns a Blob for saving.
    */
-  exportSummaryBlob(patientId: string, date: string): Promise<Blob | null> {
+  exportSummaryBlob(patientId: string, date: string, extras?: { albumin?: string | null; crp?: string | null }): Promise<Blob | null> {
     const anteriorComposite = this.buildCompositeCanvas('anterior');
     const posteriorComposite = this.buildCompositeCanvas('posterior');
     if (!anteriorComposite || !posteriorComposite) return Promise.resolve(null);
@@ -313,9 +313,80 @@ export class DrawingEngine {
     ctx.fillText('FRONT', leftX + bodyW / 2, bodyY + bodyH + 22);
     ctx.fillText('BACK', rightX + bodyW / 2, bodyY + bodyH + 22);
 
+    // Build layer data to embed inside the PNG
+    const layerData: Record<string, string | null> = {};
+    for (const view of ['anterior', 'posterior'] as const) {
+      for (const layer of ['tbsa', 'dbsa'] as const) {
+        layerData[`${view}-${layer}`] = this.exportLayerAsPNG(`draw-${layer}-${view}`);
+      }
+    }
+    const payload: Record<string, any> = {
+      layers: layerData,
+      albumin: extras?.albumin ?? null,
+      crp: extras?.crp ?? null,
+    };
+    const jsonStr = JSON.stringify(payload);
+    const marker = 'TEN_LAYER_DATA:';
+
     return new Promise((resolve) => {
-      out.toBlob((blob) => resolve(blob), 'image/png');
+      out.toBlob((blob) => {
+        if (!blob) { resolve(null); return; }
+        // Append JSON payload after PNG IEND chunk, prefixed with marker
+        const encoder = new TextEncoder();
+        const markerBytes = encoder.encode(marker);
+        const jsonBytes = encoder.encode(jsonStr);
+        blob.arrayBuffer().then((pngBuf) => {
+          const combined = new Uint8Array(pngBuf.byteLength + markerBytes.byteLength + jsonBytes.byteLength);
+          combined.set(new Uint8Array(pngBuf), 0);
+          combined.set(markerBytes, pngBuf.byteLength);
+          combined.set(jsonBytes, pngBuf.byteLength + markerBytes.byteLength);
+          resolve(new Blob([combined], { type: 'image/png' }));
+        });
+      }, 'image/png');
     });
+  }
+
+  /**
+   * Extract embedded layer data from a saved PNG file.
+   * Returns the JSON payload if found, or null.
+   */
+  static async extractLayerData(file: File): Promise<{ layers: Record<string, string | null>; albumin?: string | null; crp?: string | null } | null> {
+    const marker = 'TEN_LAYER_DATA:';
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const decoder = new TextDecoder();
+
+    // Search for marker in the file (after PNG IEND)
+    const markerBytes = new TextEncoder().encode(marker);
+    let markerPos = -1;
+    for (let i = bytes.length - 1; i >= markerBytes.length; i--) {
+      let found = true;
+      for (let j = 0; j < markerBytes.length; j++) {
+        if (bytes[i - markerBytes.length + 1 + j] !== markerBytes[j]) {
+          found = false;
+          break;
+        }
+      }
+      if (found) {
+        markerPos = i - markerBytes.length + 1;
+        break;
+      }
+    }
+
+    if (markerPos === -1) return null;
+
+    const jsonStart = markerPos + markerBytes.length;
+    const jsonStr = decoder.decode(bytes.slice(jsonStart));
+    try {
+      const parsed = JSON.parse(jsonStr);
+      return {
+        layers: parsed.layers ?? parsed,
+        albumin: parsed.albumin ?? null,
+        crp: parsed.crp ?? null,
+      };
+    } catch {
+      return null;
+    }
   }
 
   private buildCompositeCanvas(view: View): HTMLCanvasElement | null {
